@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text Quality Checker</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>Text Quality Checker</h1>
+        <p>Enter your text, then click <strong>Check</strong>. The backend will classify and correct your text.</p>
+
+        <textarea id="inputText" placeholder="Type or paste text here..." rows="8"></textarea>
+        <div class="actions">
+            <button id="checkButton">Check</button>
+            <button id="clearButton">Clear</button>
+        </div>
+
+        <div id="status" class="status"></div>
+        <div id="results" class="results" hidden>
+            <div class="panel">
+                <h2>Original Text</h2>
+                <pre id="originalText"></pre>
+            </div>
+            <div class="panel">
+                <h2>Corrected Text</h2>
+                <pre id="correctedText"></pre>
+            </div>
+            <div class="panel">
+                <h2>Highlighted Text</h2>
+                <div id="highlightedText" class="highlighted"></div>
+            </div>
+            <div class="panel summary-panel">
+                <h2>Summary</h2>
+                <ul id="summaryList"></ul>
+            </div>
+            <div class="panel errors-panel">
+                <h2>Grammar Errors</h2>
+                <ul id="grammarErrors"></ul>
+                <h2>Style Errors</h2>
+                <ul id="styleErrors"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000/check";
+
+        const inputText = document.getElementById("inputText");
+        const checkButton = document.getElementById("checkButton");
+        const clearButton = document.getElementById("clearButton");
+        const statusEl = document.getElementById("status");
+        const resultsEl = document.getElementById("results");
+        const originalTextEl = document.getElementById("originalText");
+        const correctedTextEl = document.getElementById("correctedText");
+        const highlightedTextEl = document.getElementById("highlightedText");
+        const summaryList = document.getElementById("summaryList");
+        const grammarErrorsEl = document.getElementById("grammarErrors");
+        const styleErrorsEl = document.getElementById("styleErrors");
+
+        function showStatus(message, kind = "info") {
+            statusEl.textContent = message;
+            statusEl.className = `status ${kind}`;
+        }
+
+        function clearResults() {
+            resultsEl.hidden = true;
+            originalTextEl.textContent = "";
+            correctedTextEl.textContent = "";
+            highlightedTextEl.innerHTML = "";
+            summaryList.innerHTML = "";
+            grammarErrorsEl.innerHTML = "";
+            styleErrorsEl.innerHTML = "";
+            showStatus("Ready", "info");
+        }
+
+        async function checkText() {
+            const text = inputText.value.trim();
+            if (!text) {
+                showStatus("Please enter text to analyze.", "error");
+                return;
+            }
+
+            showStatus("Checking...", "loading");
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text }),
+                });
+
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    showStatus(payload.error || "Error from server", "error");
+                    resultsEl.hidden = true;
+                    return;
+                }
+
+                originalTextEl.textContent = payload.original_text;
+                correctedTextEl.textContent = payload.corrected_text;
+                highlightedTextEl.innerHTML = payload.highlighted_text || payload.corrected_text;
+
+                summaryList.innerHTML = `
+                    <li>Spelling: ${payload.summary.spelling}</li>
+                    <li>Grammar: ${payload.summary.grammar}</li>
+                    <li>Style: ${payload.summary.style}</li>
+                    <li>Total: ${payload.summary.total}</li>
+                    <li>Quality Score: ${payload.summary.score}</li>
+                `;
+
+                function renderList(list) {
+    return list.map(item =>
+        `<li>
+            <strong>${item.message}</strong><br>
+            Suggestions: ${item.suggestions.join(", ")}
+        </li>`
+    ).join("");
+}
+                grammarErrorsEl.innerHTML = payload.grammar_errors?.length
+    ? renderList(payload.grammar_errors)
+    : "<li>none</li>";
+
+styleErrorsEl.innerHTML = payload.style_errors?.length
+    ? renderList(payload.style_errors)
+    : "<li>none</li>";
+
+                resultsEl.hidden = false;
+                showStatus("Analysis completed", "success");
+            } catch (error) {
+                showStatus("Network or server error: " + error.message, "error");
+                resultsEl.hidden = true;
+            }
+        }
+
+        checkButton.addEventListener("click", checkText);
+        clearButton.addEventListener("click", () => {
+            inputText.value = "";
+            clearResults();
+        });
+
+        clearResults();
+    </script>
+</body>
+</html>
