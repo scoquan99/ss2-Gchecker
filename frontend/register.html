@@ -326,7 +326,7 @@
 
   <div class="auth-card">
     <div class="card-header">
-      <h2>Create account 🚀</h2>
+      <h2>Create account</h2>
       <div class="card-sub">
         <i class="fas fa-user-plus"></i> It only takes a moment
       </div>
@@ -437,7 +437,7 @@
       { w: "50%",  bg: "#f97316", text: "Fair" },
       { w: "75%",  bg: "#eab308", text: "Good" },
       { w: "88%",  bg: "#22c55e", text: "Strong" },
-      { w: "100%", bg: "#059669", text: "Very strong 💪" },
+      { w: "100%", bg: "#059669", text: "Very strong" },
     ];
 
     const lvl = val.length === 0 ? levels[0] : levels[Math.min(score, 5)];
@@ -457,12 +457,12 @@
     const terms    = document.getElementById("termsCheckbox").checked;
     const btn      = document.getElementById("signupBtn");
 
-    if (!username)           { setError("signupError", "❌ Username is required"); return; }
-    if (username.length < 3) { setError("signupError", "⚠️ Username must be at least 3 characters"); return; }
-    if (!password)           { setError("signupError", "🔐 Password cannot be empty"); return; }
-    if (password.length < 6) { setError("signupError", "⚠️ Password must be at least 6 characters"); return; }
-    if (password !== confirm) { setError("signupError", "❌ Passwords do not match"); return; }
-    if (!terms)              { setError("signupError", "📜 You must accept the Terms and Conditions"); return; }
+    if (!username)           { setError("signupError", "Username is required"); return; }
+    if (username.length < 3) { setError("signupError", "Username must be at least 3 characters"); return; }
+    if (!password)           { setError("signupError", "Password cannot be empty"); return; }
+    if (password.length < 6) { setError("signupError", "Password must be at least 6 characters"); return; }
+    if (password !== confirm) { setError("signupError", "Passwords do not match"); return; }
+    if (!terms)              { setError("signupError", "You must accept the Terms and Conditions"); return; }
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account…';
@@ -476,15 +476,15 @@
       const data = await res.json();
 
       if (!res.ok) {
-        setError("signupError", "❌ " + (data.error || "Registration failed"));
+        setError("signupError" + (data.error || "Registration failed"));
         return;
       }
 
-      showToast("🎉 Account created! Redirecting to sign in…", "success");
+      showToast("Account created! Redirecting to sign in…", "success");
       setTimeout(() => window.location.href = "login.html", 1200);
 
     } catch (err) {
-      setError("signupError", "🌐 Network error: " + err.message);
+      setError("signupError", "Network error: " + err.message);
     } finally {
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-user-plus"></i> CREATE ACCOUNT';
@@ -494,7 +494,7 @@
   /* ── Terms link ── */
   document.getElementById("termsLink").addEventListener("click", (e) => {
     e.preventDefault();
-    showToast("📄 Full Terms & Conditions available in production.");
+    showToast("Full Terms & Conditions available in production.");
   });
 </script>
 </body>

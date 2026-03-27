@@ -374,8 +374,8 @@
     const password = document.getElementById("signinPassword").value;
     const btn = document.getElementById("signinBtn");
 
-    if (!username) { setError("signinError", "❌ Username is required"); return; }
-    if (!password)  { setError("signinError", "🔒 Please enter your password"); return; }
+    if (!username) { setError("signinError", " Username is required"); return; }
+    if (!password)  { setError("signinError", " Please enter your password"); return; }
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in…';
@@ -389,17 +389,17 @@
       const data = await res.json();
 
       if (!res.ok) {
-        setError("signinError", "❌ " + (data.error || "Login failed"));
+        setError("signinError" + (data.error || "Login failed"));
         return;
       }
 
       localStorage.setItem("token",    data.token);
       localStorage.setItem("username", username);
-      showToast("✨ Welcome back, " + username + "!", "success");
+      showToast("Welcome back, " + username + "!", "success");
       setTimeout(() => window.location.href = "index.html", 900);
 
     } catch (err) {
-      setError("signinError", "🌐 Network error: " + err.message);
+      setError("signinError", "Network error: " + err.message);
     } finally {
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-arrow-right-to-bracket"></i> SIGN IN';
