@@ -73,6 +73,14 @@
 
         <textarea id="inputText" placeholder="Type or paste text here..." rows="8"></textarea>
         <div class="actions">
+            <select id="languageSelect">
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="es-ES">Spanish</option>
+                <option value="fr-FR">French</option>
+                <option value="de-DE">German</option>
+                <option value="vi-VN">Vietnamese</option>
+            </select>
             <button id="checkButton">Check</button>
             <button id="clearButton">Clear</button>
         </div>
@@ -107,6 +115,9 @@
     <script>
         const API_URL  = "http://localhost:5000/check";
         const BASE_URL = "http://localhost:5000";
+
+        const savedLang = localStorage.getItem("preferred_language") || "en-US";
+        document.getElementById("languageSelect").value = savedLang;
 
         /* ── Auth guard ── */
         const token = localStorage.getItem("token");
@@ -156,6 +167,9 @@
 
         async function checkText() {
             const text = inputText.value.trim();
+            const lang = document.getElementById("languageSelect").value;
+            localStorage.setItem("preferred_language", lang);
+             /* Lưu ngôn ngữ ưa thích vào localStorage để lần sau tự động chọn */
             if (!text) {
                 showStatus("Please enter text to analyze.", "error");
                 return;
@@ -170,7 +184,7 @@
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + token   /* ← JWT gửi lên backend */
                     },
-                    body: JSON.stringify({ text }),
+                    body: JSON.stringify({ text, lang }),
                 });
 
                 /* Token hết hạn hoặc không hợp lệ → đá về login */

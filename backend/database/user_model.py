@@ -27,3 +27,10 @@ def find_user(username):
 
 def verify_password(plain, hashed):
     return bcrypt.checkpw(plain.encode(), hashed)
+
+def save_preferred_language(username, lang):
+    users_col.update_one({"username": username}, {"$set": {"preferred_language": lang}})
+
+def get_preferred_language(username):
+    user = find_user(username)
+    return user.get("preferred_language", "en-US") if user else "en-US"

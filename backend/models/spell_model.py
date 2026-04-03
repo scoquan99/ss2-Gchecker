@@ -7,7 +7,9 @@ class SpellChecker:
     def __init__(self):
         self.tool = language_tool_python.LanguageTool('en-US')
 
-    def analyze_text(self, text):
+    def analyze_text(self, text, lang="en-US"):
+
+        self.tool = language_tool_python.LanguageTool(lang)
 
         blob = TextBlob(text)
         corrected_text = str(blob.correct())

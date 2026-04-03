@@ -9,7 +9,7 @@ db = client["grammar_checker"]
 history_collection = db["history"]
 
 
-def save_history(text, result):
+def save_history(text, result, lang="en-US"):
     """
     Lưu lịch sử kiểm tra grammar vào MongoDB
     """
@@ -17,6 +17,7 @@ def save_history(text, result):
     data = {
         "text": text,
         "result": result,
+        "lang": lang,
         "created_at": datetime.utcnow()
     }
 

@@ -16,6 +16,7 @@ def check():
 
     data = request.json
     text = data.get("text","")
+    lang = data.get("lang", "en-US") 
 
     if text.strip() == "":
         return jsonify({"error":"Text cannot be empty"}),400
@@ -23,7 +24,7 @@ def check():
     if len(text) > MAX_LENGTH:
         return jsonify({"error":"Text exceeds 5000 characters"}),400
 
-    result = checker.analyze_text(text)
+    result = checker.analyze_text(text, lang)
 
     spelling_errors = len(text.split()) - len(result["corrected_text"].split())
     grammar_count = len(result["grammar_errors"])
@@ -32,6 +33,7 @@ def check():
     quality_score = max(0, 100 - total_errors*5)
 
     response = {
+       "lang": lang,
         "original_text": text,
         "corrected_text": result["corrected_text"],
         "highlighted_text": result["highlighted_text"],
@@ -47,5 +49,5 @@ def check():
         "created_at": str(datetime.now())
     }
 
-    save_history(text, response)
+    save_history(text, response, lang)
     return jsonify(response)
