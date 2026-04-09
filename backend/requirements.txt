@@ -1,0 +1,11 @@
+flask
+flask-cors
+language-tool-python
+textblob
+google-genai
+python-dotenv
+titlecase
+bcrypt
+PyJWT
+nltk
+textstat

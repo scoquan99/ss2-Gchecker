@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="app-title">Text Quality Checker Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- All styles externalized -->
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+<div class="container">
+
+    <div class="app-header">
+        <div>
+            <span style="font-size:14px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px" data-i18n="app-role">Writing Assistant</span>
+            <h1 data-i18n="app-title">Text Quality Checker Pro</h1>
+        </div>
+        <div class="header-controls">
+            <div class="avatar" onclick="toggleProfileDropdown()" title="Menu">👤</div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="dropdown-group">
+                    <div class="dropdown-item" onclick="handleAuthAction()">
+                        <span class="dropdown-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></span>
+                        <span id="authActionText" data-i18n="dropdown-login">Log in / Sign up</span>
+                    </div>
+                </div>
+                <div class="dropdown-group">
+                    <div class="dropdown-item" style="position:relative;">
+                        <select id="langSwitcher" onchange="handleLangChange(this.value)" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;">
+                            <option value="en">English</option>
+                            <option value="vi">Tiếng Việt</option>
+                        </select>
+                        <span class="dropdown-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg></span>
+                        <span id="currentLangDisplay">English</span>
+                        <span class="dropdown-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
+                    </div>
+                    <div class="dropdown-item" onclick="DarkMode.toggle(event)">
+                        <span class="dropdown-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+                        <span data-i18n="dropdown-darkmode">Dark mode</span>
+                        <div class="toggle-switch" id="darkModeSwitch"><div class="toggle-circle"></div></div>
+                    </div>
+                </div>
+                <div class="dropdown-group">
+                    <div class="dropdown-item">
+                        <span class="dropdown-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+                        <span data-i18n="dropdown-help">Help Center</span>
+                    </div>
+                    <div class="dropdown-item">
+                        <span class="dropdown-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+                        <span data-i18n="dropdown-contact">Contact us</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-wrapper">
+        <textarea id="inputText" data-i18n="input-placeholder" placeholder="Paste your comprehensive text here to analyze..."></textarea>
+    </div>
+
+    <div class="section-title" data-i18n="select-mode">Select Analysis Mode</div>
+
+    <div class="cards-grid">
+        <div class="tool-card active" data-mode="basic" onclick="selectMode('basic')">
+            <div class="tool-icon">🛠️</div>
+            <div class="tool-details"><h3 data-i18n="basic-title">Basic Verification</h3><p data-i18n="basic-desc">Standard spelling & grammar checks.</p></div>
+        </div>
+        <div class="tool-card" data-mode="tone" onclick="selectMode('tone')">
+            <div class="tool-icon">📶</div>
+            <div class="tool-details"><h3 data-i18n="tone-title">Style & Tone Aligner</h3><p data-i18n="tone-desc">Set your tone and ensure consistent delivery.</p></div>
+        </div>
+        <div class="tool-card" data-mode="structural" onclick="selectMode('structural')">
+            <div class="tool-icon">⚙️</div>
+            <div class="tool-details"><h3 data-i18n="structural-title">Structural Analysis</h3><p data-i18n="struct-desc">Analyze sentence variation and paragraph flow.</p></div>
+        </div>
+        <div class="tool-card" data-mode="clarity" onclick="selectMode('clarity')">
+            <div class="tool-icon">✂️</div>
+            <div class="tool-details"><h3 data-i18n="clarity-title">Clarity Boost</h3><p data-i18n="clarity-desc">Remove filler words and convert passive voice.</p></div>
+        </div>
+        <div class="tool-card" data-mode="impact" onclick="selectMode('impact')">
+            <span class="badge-pro">PRO</span>
+            <div class="tool-icon">🔎</div>
+            <div class="tool-details"><h3 data-i18n="impact-title">Impact Suggestions</h3><p data-i18n="impact-desc">Discover powerful synonyms & context-aware choices.</p></div>
+        </div>
+    </div>
+
+    <div id="toneWrapper">
+        <input type="text" id="toneInput" data-i18n="tone-placeholder" placeholder="e.g. Formal, High-Energy, Academic..." />
+    </div>
+
+    <button class="check-btn" id="checkButton" data-i18n="analyze-btn">Analyze Text</button>
+    <div id="status" style="margin-top:20px;font-weight:600;font-size:16px;text-align:center;"></div>
+
+    <div class="results-panel" id="results" hidden>
+        <div class="result-card">
+            <h4 data-i18n="optimized-title">✨ Optimized Text</h4>
+            <div id="correctedText" style="font-size:16px;color:var(--text-color);line-height:1.8;"></div>
+        </div>
+        <div class="result-card">
+            <h4 data-i18n="highlights-title">🖍️ Sentence Highlights</h4>
+            <div id="sentenceHighlightsDiv" style="font-size:16px;color:var(--text-color);line-height:1.8;"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="result-card">
+                <h4 data-i18n="stats-title">📊 Writing Statistics</h4>
+                <div id="writingStatsList" style="font-size:15px;line-height:2;color:var(--text-muted);"></div>
+                <div id="keywordDensity" style="margin-top:16px;"></div>
+            </div>
+            <div class="result-card">
+                <h4 data-i18n="errors-title">⚠️ Flags & Errors</h4>
+                <ul id="errorsList" style="margin:0;padding-left:20px;font-size:15px;color:#dc2626;line-height:1.8;"></ul>
+            </div>
+        </div>
+        <div class="result-card" id="aiPanel" hidden>
+            <h4 data-i18n="ai-panel-title">🤖 Deep AI Analysis</h4>
+            <pre id="aiAnalysisOutput" style="font-size:14px;color:var(--text-color);line-height:1.6;"></pre>
+        </div>
+    </div>
+
+    <div class="extras-section">
+        <h2 class="section-title" data-i18n="extras-title">Extras / Tools Suite</h2>
+        <div class="tools-suite-grid">
+            <div class="extra-tool-card">
+                <h3 data-i18n="thesaurus-title">📘 The Thesaurus</h3>
+                <p style="font-size:14px;color:var(--text-muted);" data-i18n="thesaurus-desc">Dive deep into NLTK WordNet semantics.</p>
+                <input type="text" id="thesaurusInput" class="tool-input" data-i18n="thesaurus-placeholder" placeholder="Type a word..." />
+                <button class="tool-btn" id="thesaurusBtn" data-i18n="thesaurus-btn">Lookup</button>
+                <div id="thesaurusResults" style="margin-top:16px;font-size:14px;"></div>
+            </div>
+            <div class="extra-tool-card">
+                <h3 data-i18n="cap-title">🔠 Title Capitalizer</h3>
+                <p style="font-size:14px;color:var(--text-muted);" data-i18n="cap-desc">Format any string into perfect Title Case.</p>
+                <input type="text" id="capitalizeInput" class="tool-input" data-i18n="cap-placeholder" placeholder="Enter messy title..." />
+                <button class="tool-btn" id="capitalizeBtn" data-i18n="cap-btn">Capitalize</button>
+                <div id="capitalizeResults" style="margin-top:16px;font-size:16px;font-weight:bold;color:#111;"></div>
+            </div>
+            <div class="extra-tool-card">
+                <h3 data-i18n="ai-detect-title">🤖 AI Detector Core</h3>
+                <p style="font-size:14px;color:var(--text-muted);" data-i18n="ai-detect-desc">Analyze the main text area for AI footprints.</p>
+                <button class="tool-btn" id="aiDetectBtn" style="margin-top:12px;width:100%;" data-i18n="ai-detect-btn">Check Text for AI</button>
+                <div id="aiDetectResults" style="margin-top:16px;font-size:14px;background:var(--card-bg);padding:10px;border-radius:8px;"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+    <div class="nav-item active"><div class="nav-icon">🏠</div><span data-i18n="nav-dash">Home Dashboard</span></div>
+    <div class="nav-item"><div class="nav-icon">🔬</div><span data-i18n="nav-analysis">Deep Analysis</span></div>
+    <div class="nav-item"><div class="nav-icon">📁</div><span data-i18n="nav-projects">Saved Projects</span></div>
+    <div class="nav-item"><div class="nav-icon">📋</div><span data-i18n="nav-history">Check History</span></div>
+</nav>
+
+<!-- Load order: config → middleware → components → routes → page logic → i18n -->
+<script src="../config/config.js"></script>
+<script src="../middleware/session.js"></script>
+<script src="../middleware/auth.guard.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../routes/auth.routes.js"></script>
+<script src="../routes/analysis.routes.js"></script>
+<script src="../components/toast.js"></script>
+<script src="../components/errorHandler.js"></script>
+<script src="../components/darkMode.js"></script>
+<script src="../assets/js/translations.js"></script>
+
+<script>
+    let activeMode = "basic";
+
+    window.applyFix = function (type, index, suggestion) {
+        if (!window.currentErrors?.[type]) return;
+        const err = window.currentErrors[type][index];
+        const ta  = document.getElementById("inputText");
+        ta.value  = ta.value.substring(0, err.offset) + suggestion + ta.value.substring(err.offset + err.length);
+        document.getElementById("checkButton").click();
+    };
+
+    function logout() { Session.clear(); window.location.href = "login.html"; }
+
+    function selectMode(mode) {
+        activeMode = mode;
+        document.querySelectorAll('.tool-card').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.tool-card[data-mode="${mode}"]`).classList.add('active');
+        document.getElementById('toneWrapper').style.display = (mode === 'tone') ? 'block' : 'none';
+    }
+
+    function showStatus(msg, type = "info") {
+        const el = document.getElementById("status");
+        el.textContent = msg;
+        el.style.color = type === 'error' ? '#dc2626' : type === 'success' ? '#10b981' : '#2563eb';
+    }
+
+    document.getElementById("checkButton").addEventListener("click", async () => {
+        const text = document.getElementById("inputText").value.trim();
+        if (!text) return showStatus("Please enter some text.", "error");
+
+        const backendMode = activeMode === 'impact' ? 'clarity' : activeMode;
+        const tone        = document.getElementById("toneInput").value || "Professional";
+
+        showStatus("Analyzing your text...", "info");
+        document.getElementById("results").hidden = true;
+
+        try {
+            const payload = await AnalysisAPI.check(text, backendMode, tone);
+
+            document.getElementById("correctedText").innerHTML = payload.highlighted_text || payload.corrected_text || text;
+
+            const stats = payload.stats || {};
+            document.getElementById("writingStatsList").innerHTML = `
+                <strong>Word Count:</strong> ${stats.word_count || 0}<br>
+                <strong>Char Count:</strong> ${stats.char_count || 0}<br>
+                <strong>Reading Time:</strong> ${stats.reading_time_mins || 0} minutes<br>
+                <strong>Speaking Time:</strong> ${stats.speaking_time_mins || 0} minutes<br>
+                <strong>Flesch Reading Ease:</strong> ${stats.reading_ease || 0}
+            `;
+
+            if (stats.top_keywords) {
+                document.getElementById("keywordDensity").innerHTML =
+                    "<strong>Keywords:</strong><br>" + stats.top_keywords.map(k => `<span class="pill">${k.word} (${k.count})</span>`).join("");
+            }
+
+            document.getElementById("sentenceHighlightsDiv").innerHTML =
+                stats.sentence_highlights
+                    ? stats.sentence_highlights.map(s => `<span class="highlight-${s.category}">${s.text}</span> `).join("")
+                    : "";
+
+            window.currentErrors = { grammar: payload.grammar_errors || [], style: payload.style_errors || [] };
+
+            const renderBtn = (err, type, i) => {
+                if (!err.suggestions?.length) return "";
+                const btns = err.suggestions.slice(0, 3).map(s =>
+                    `<button style="margin-right:5px;cursor:pointer;padding:2px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-weight:600;color:#1d4ed8;" onclick="window.applyFix('${type}',${i},'${s.replace(/'/g,"\\'")}'')">${s}</button>`
+                ).join("");
+                return `<div style="margin-top:6px;">Fix with: ${btns}</div>`;
+            };
+
+            const gHtml = window.currentErrors.grammar.map((e,i) => `<li style="margin-bottom:12px"><strong>${e.message}</strong>${renderBtn(e,'grammar',i)}</li>`).join("");
+            const sHtml = window.currentErrors.style.map((e,i)   => `<li style="margin-bottom:12px"><strong>${e.message}</strong>${renderBtn(e,'style',i)}</li>`).join("");
+            document.getElementById("errorsList").innerHTML = (gHtml || sHtml) ? (gHtml + sHtml) : "<li>No grammar issues found! ✨</li>";
+
+            const aiPanel = document.getElementById("aiPanel");
+            if (payload.ai_analysis) {
+                aiPanel.hidden = false;
+                document.getElementById("aiAnalysisOutput").textContent = JSON.stringify(payload.ai_analysis, null, 2);
+                if (payload.ai_analysis.improved_text) document.getElementById("correctedText").textContent = payload.ai_analysis.improved_text;
+            } else {
+                aiPanel.hidden = true;
+            }
+
+            document.getElementById("results").hidden = false;
+            showStatus("Analysis Engine Complete!", "success");
+
+        } catch (e) { showStatus(e.message, "error"); }
+    });
+
+    document.getElementById("aiDetectBtn").addEventListener("click", async () => {
+        const text = document.getElementById("inputText").value.trim();
+        if (!text) return alert("Enter text in the main box first.");
+        document.getElementById("aiDetectResults").innerHTML = "<em>Analyzing...</em>";
+        try {
+            const data = await AnalysisAPI.detectAI(text);
+            document.getElementById("aiDetectResults").innerHTML = `<strong>Probability: ${data.ai_probability}% AI</strong><br>${data.reasoning}`;
+        } catch (e) { document.getElementById("aiDetectResults").textContent = e.message; }
+    });
+
+    document.getElementById("thesaurusBtn").addEventListener("click", async () => {
+        const word = document.getElementById("thesaurusInput").value.trim();
+        if (!word) return;
+        document.getElementById("thesaurusResults").innerHTML = "<em>Searching...</em>";
+        try {
+            const data = await AnalysisAPI.thesaurus(word);
+            document.getElementById("thesaurusResults").innerHTML = `
+                <div style="margin-bottom:8px;"><strong>Synonyms:</strong><br>${data.synonyms?.join(", ") || "none"}</div>
+                <div><strong>Antonyms:</strong><br>${data.antonyms?.join(", ") || "none"}</div>
+            `;
+        } catch (e) { console.error(e); }
+    });
+
+    document.getElementById("capitalizeBtn").addEventListener("click", async () => {
+        const text = document.getElementById("capitalizeInput").value.trim();
+        if (!text) return;
+        try {
+            const data = await AnalysisAPI.capitalize(text);
+            document.getElementById("capitalizeResults").textContent = data.capitalized || "Error";
+        } catch (e) { console.error(e); }
+    });
+
+    function toggleProfileDropdown() {
+        document.getElementById('profileDropdown').classList.toggle('open');
+    }
+
+    document.addEventListener('click', (e) => {
+        const dd = document.getElementById('profileDropdown');
+        const av = document.querySelector('.avatar');
+        if (dd.classList.contains('open') && !dd.contains(e.target) && !av.contains(e.target)) {
+            dd.classList.remove('open');
+        }
+    });
+
+    function handleAuthAction() {
+        Session.isLoggedIn() ? logout() : window.location.href = 'login.html';
+    }
+
+    function handleLangChange(lang) {
+        applyLanguage(lang);
+        syncLangDisplay(lang);
+        document.getElementById('profileDropdown').classList.remove('open');
+    }
+
+    function syncLangDisplay(lang) {
+        document.getElementById('currentLangDisplay').textContent = lang === 'vi' ? "Tiếng Việt" : "English";
+        document.getElementById('langSwitcher').value = lang;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('authActionText').textContent = Session.isLoggedIn() ? "Log out" : "Log in / Sign up";
+        DarkMode.init();
+        const savedLang = localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || AppConfig.DEFAULT_LANG;
+        syncLangDisplay(savedLang);
+    });
+</script>
+</body>
+</html>

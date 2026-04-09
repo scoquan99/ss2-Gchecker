@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Sign Up | Text Quality Checker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Shared auth styles -->
+    <link rel="stylesheet" href="../assets/css/auth.css">
+    <style>
+        /* Register-specific color overrides */
+        .free-badge  { background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(5,150,105,0.2); padding: 0.3rem 1rem; border-radius: 40px; font-size: 0.8rem; font-weight: 500; }
+        .hero-section h1 { background: linear-gradient(135deg, #1E293B, #1a6b4a, #059669); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .input-field:focus-within { border-color: #34d399; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); background: #fff; }
+        .card-sub i  { color: #34d399; }
+        .switch-link a { color: #059669; }
+        .checkbox-wrapper a { color: #059669; }
+    </style>
+</head>
+<body>
+    <div class="toast" id="toast"></div>
+
+    <div class="page-wrapper">
+        <div class="hero-section">
+            <div class="badge-row">
+                <div class="free-badge"><i class="fas fa-gem" style="font-size:0.7rem"></i> free forever</div>
+            </div>
+            <h1>SIGN UP</h1>
+            <p>Join and start checking your text for free.</p>
+        </div>
+
+        <div class="auth-card">
+            <div class="card-header">
+                <h2>Create account</h2>
+                <div class="card-sub"><i class="fas fa-user-plus"></i> It only takes a moment</div>
+            </div>
+
+            <div class="form-error-banner" id="errorBanner" role="alert" aria-live="polite">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorBannerText"></span>
+            </div>
+
+            <form id="signupForm" novalidate>
+                <div class="input-group">
+                    <label for="signupUsername">Username</label>
+                    <div class="input-field" id="usernameField">
+                        <i class="far fa-user"></i>
+                        <input type="text" id="signupUsername" placeholder="Choose a username" autocomplete="username" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="signupEmail">Email Address</label>
+                    <div class="input-field" id="emailField">
+                        <i class="far fa-envelope"></i>
+                        <input type="email" id="signupEmail" placeholder="Enter your email" autocomplete="email" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="signupFullName">Full Name</label>
+                    <div class="input-field" id="fullnameField">
+                        <i class="far fa-id-badge"></i>
+                        <input type="text" id="signupFullName" placeholder="Enter your full name" autocomplete="name" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="signupPassword">Password</label>
+                    <div class="input-field" id="passwordField">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="signupPassword" placeholder="Create a strong password" autocomplete="new-password" required>
+                    </div>
+                    <div class="strength-bar"><div class="strength-bar-fill" id="strengthFill"></div></div>
+                    <div class="strength-label" id="strengthLabel">Enter a password</div>
+                </div>
+                <div class="input-group">
+                    <label for="signupConfirm">Confirm Password</label>
+                    <div class="input-field" id="confirmField">
+                        <i class="fas fa-check-circle"></i>
+                        <input type="password" id="signupConfirm" placeholder="Repeat your password" autocomplete="new-password" required>
+                    </div>
+                </div>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="termsCheckbox">
+                    <label for="termsCheckbox">I agree to the <a href="#" id="termsLink">Terms and Conditions</a></label>
+                </div>
+                <button type="submit" class="action-btn" id="signupBtn">
+                    <i class="fas fa-user-plus"></i> CREATE ACCOUNT
+                </button>
+            </form>
+
+            <div class="terms-note"><i class="fas fa-laptop-code"></i> Join now — it's free</div>
+            <div class="switch-link">Already have an account? <a href="login.html">&larr; Sign in</a></div>
+        </div>
+
+        <div class="footer-attribution"><span><i class="far fa-copyright"></i> created by group 7</span></div>
+    </div>
+
+    <!-- Load order: config → middleware → components → routes -->
+    <script src="../config/config.js"></script>
+    <script src="../middleware/session.js"></script>
+    <script src="../middleware/auth.guard.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../routes/auth.routes.js"></script>
+    <script src="../components/toast.js"></script>
+    <script src="../components/errorHandler.js"></script>
+
+    <script>
+        AuthGuard.requireGuest();
+
+        const ALL_FIELDS = ["usernameField","emailField","fullnameField","passwordField","confirmField"];
+
+        function clearError() { ErrorHandler.clearBanner("errorBanner", ALL_FIELDS); }
+
+        ALL_FIELDS.forEach(fid => {
+            const input = document.querySelector(`#${fid} input`);
+            if (input) input.addEventListener("input", clearError);
+        });
+
+        // Password strength meter
+        document.getElementById("signupPassword").addEventListener("input", function () {
+            const val = this.value;
+            let score = 0;
+            if (val.length >= 6)  score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            const levels = [
+                { w:"0%",   bg:"#e2e8f0", text:"Enter a password" },
+                { w:"25%",  bg:"#ef4444", text:"Weak" },
+                { w:"50%",  bg:"#f97316", text:"Fair" },
+                { w:"75%",  bg:"#eab308", text:"Good" },
+                { w:"88%",  bg:"#22c55e", text:"Strong" },
+                { w:"100%", bg:"#059669", text:"Very strong" },
+            ];
+            const lvl = val.length === 0 ? levels[0] : levels[Math.min(score, 5)];
+            const fill  = document.getElementById("strengthFill");
+            const label = document.getElementById("strengthLabel");
+            fill.style.width      = lvl.w;
+            fill.style.background = lvl.bg;
+            label.textContent     = lvl.text;
+            label.style.color     = val.length === 0 ? "#94a3b8" : lvl.bg;
+        });
+
+        function validateForm(f) {
+            if (!f.username)                                          return { msg:"Username is required.", field:"usernameField" };
+            if (!/^[a-zA-Z0-9_.]{5,30}$/.test(f.username))          return { msg:"Username: 5–30 chars, letters/numbers/._", field:"usernameField" };
+            if (!f.email || !/[^@]+@[^@]+\.[^@]+/.test(f.email))    return { msg:"Invalid email format.", field:"emailField" };
+            if (!f.full_name || f.full_name.length < 2)              return { msg:"Full name must be at least 2 characters.", field:"fullnameField" };
+            if (!f.password || f.password.length < 8)                return { msg:"Password must be at least 8 characters.", field:"passwordField" };
+            if (!/[A-Z]/.test(f.password)||!/[a-z]/.test(f.password)||!/[0-9]/.test(f.password)) return { msg:"Password needs uppercase, lowercase, and a number.", field:"passwordField" };
+            if (!/[@$!%*?&#^()_+=\-{}\[\]|\\:;"'<>,./~`]/.test(f.password)) return { msg:"Password needs a special character (e.g. @, #, $).", field:"passwordField" };
+            if (f.password !== f.confirm)                            return { msg:"Passwords do not match.", field:"confirmField" };
+            if (!f.terms)                                            return { msg:"You must accept the Terms and Conditions." };
+            return null;
+        }
+
+        document.getElementById("signupForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearError();
+
+            const fields = {
+                username:  document.getElementById("signupUsername").value.trim(),
+                email:     document.getElementById("signupEmail").value.trim(),
+                full_name: document.getElementById("signupFullName").value.trim(),
+                password:  document.getElementById("signupPassword").value,
+                confirm:   document.getElementById("signupConfirm").value,
+                terms:     document.getElementById("termsCheckbox").checked,
+            };
+
+            const ve = validateForm(fields);
+            if (ve) { ErrorHandler.showBanner("errorBannerText","errorBanner", ve.msg, ve.field || null); return; }
+
+            const btn = document.getElementById("signupBtn");
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account…';
+
+            try {
+                await AuthAPI.register(fields.username, fields.email, fields.full_name, fields.password);
+                Toast.show("Account created! Redirecting to sign in…", "success");
+                setTimeout(() => window.location.replace("login.html"), 1200);
+
+            } catch (err) {
+                if (err.status === 409) {
+                    document.getElementById("usernameField").classList.add("has-error");
+                    document.getElementById("emailField").classList.add("has-error");
+                }
+                ErrorHandler.showBanner("errorBannerText","errorBanner", ErrorHandler.getMessage(err, "register"));
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> CREATE ACCOUNT';
+            }
+        });
+
+        document.getElementById("termsLink").addEventListener("click", (e) => {
+            e.preventDefault();
+            Toast.show("Full Terms & Conditions available in production.");
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Sign In | Text Quality Checker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Shared auth styles -->
+    <link rel="stylesheet" href="../assets/css/auth.css">
+    <style>
+        /* Login-specific color overrides */
+        .free-badge { background: rgba(99,102,241,0.12); color: #4f46e5; border: 1px solid rgba(79,70,229,0.2); }
+        .hero-section h1 { background: linear-gradient(135deg, #1E293B, #3B4D6B, #4f46e5); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .input-field:focus-within { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(79,70,229,0.15); background: #fff; }
+        .card-sub i { color: #818cf8; }
+    </style>
+</head>
+<body>
+    <div class="toast" id="toast"></div>
+
+    <div class="page-wrapper">
+        <div class="hero-section">
+            <div class="badge-row">
+                <div class="free-badge"><i class="fas fa-gem" style="font-size:0.7rem"></i> ultramax vipro</div>
+            </div>
+            <h1>SIGN IN</h1>
+            <p>Welcome back — let's check your text.</p>
+        </div>
+
+        <div class="auth-card">
+            <div class="card-header">
+                <h2>Hello again 👋</h2>
+                <div class="card-sub"><i class="fas fa-user"></i> Sign in with your account</div>
+            </div>
+
+            <div class="form-error-banner" id="errorBanner" role="alert" aria-live="polite">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorBannerText"></span>
+            </div>
+
+            <form id="signinForm" novalidate>
+                <div class="input-group">
+                    <label for="signinUsername">Username</label>
+                    <div class="input-field" id="usernameField">
+                        <i class="far fa-user"></i>
+                        <input type="text" id="signinUsername" placeholder="Enter your username" autocomplete="username" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="signinPassword">Password</label>
+                    <div class="input-field" id="passwordField">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="signinPassword" placeholder="········" autocomplete="current-password" required>
+                    </div>
+                </div>
+                <button type="submit" class="action-btn" id="signinBtn">
+                    <i class="fas fa-arrow-right-to-bracket"></i> SIGN IN
+                </button>
+            </form>
+
+            <div class="terms-note"><i class="fas fa-shield-alt"></i> Secure login — we value your privacy</div>
+            <div class="switch-link">Don't have an account? <a href="register.html">Create one &rarr;</a></div>
+        </div>
+
+        <div class="footer-attribution"><span><i class="far fa-copyright"></i> created by group 7</span></div>
+    </div>
+
+    <!-- Load order: config → middleware → components → routes -->
+    <script src="../config/config.js"></script>
+    <script src="../middleware/session.js"></script>
+    <script src="../middleware/auth.guard.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../routes/auth.routes.js"></script>
+    <script src="../components/toast.js"></script>
+    <script src="../components/errorHandler.js"></script>
+
+    <script>
+        // Auth guard: redirect to index if already logged in
+        AuthGuard.requireGuest();
+
+        const FIELDS = ["usernameField", "passwordField"];
+
+        function clearError() {
+            ErrorHandler.clearBanner("errorBanner", FIELDS);
+        }
+
+        ["signinUsername", "signinPassword"].forEach(id =>
+            document.getElementById(id).addEventListener("input", clearError)
+        );
+
+        document.getElementById("signinForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearError();
+
+            const username = document.getElementById("signinUsername").value.trim();
+            const password = document.getElementById("signinPassword").value;
+            const btn      = document.getElementById("signinBtn");
+
+            if (!username) { ErrorHandler.showBanner("errorBannerText","errorBanner","Please enter your username.","usernameField"); return; }
+            if (!password) { ErrorHandler.showBanner("errorBannerText","errorBanner","Please enter your password.","passwordField"); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in…';
+
+            try {
+                const data = await AuthAPI.login(username, password);
+                Session.save(data.token, username);
+                Toast.show("Welcome back, " + username + "!", "success");
+                setTimeout(() => window.location.replace("index.html"), 900);
+
+            } catch (err) {
+                if (err.status === 401) {
+                    document.getElementById("passwordField").classList.add("has-error");
+                    document.getElementById("signinPassword").value = "";
+                    document.getElementById("signinPassword").focus();
+                }
+                ErrorHandler.showBanner("errorBannerText", "errorBanner", ErrorHandler.getMessage(err, "auth"));
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-arrow-right-to-bracket"></i> SIGN IN';
+            }
+        });
+    </script>
+</body>
+</html>

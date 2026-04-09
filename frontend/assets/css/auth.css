@@ -1,0 +1,225 @@
+/**
+ * assets/css/auth.css
+ * Shared styles for login.html and register.html
+ * Extracted from inline <style> blocks in auth pages
+ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(145deg, #f8fafc 0%, #eef2f8 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    position: relative;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: -20%; left: -10%;
+    width: 60%; height: 60%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ── Page Wrapper ──────────────────────────────── */
+.page-wrapper   { max-width: 480px; width: 100%; position: relative; z-index: 2; }
+.hero-section   { text-align: center; margin-bottom: 2rem; }
+
+.badge-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.2rem;
+}
+
+.hero-section h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+}
+
+.hero-section p { color: #4b5563; font-weight: 500; font-size: 0.95rem; }
+
+/* ── Card ──────────────────────────────────────── */
+.auth-card {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(2px);
+    border-radius: 2rem;
+    box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+    padding: 2.2rem 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    animation: fadeUp 0.35s ease both;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-header  { margin-bottom: 1.8rem; }
+.card-header h2 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    background: linear-gradient(120deg, #1e293b, #2d3a4e);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    letter-spacing: -0.3px;
+}
+
+.card-sub {
+    font-size: 0.85rem;
+    color: #5b6e8c;
+    margin-top: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.card-sub i { font-size: 0.7rem; }
+
+/* ── Input Groups ──────────────────────────────── */
+.input-group { margin-bottom: 1.3rem; display: flex; flex-direction: column; gap: 0.4rem; }
+
+.input-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #334155;
+}
+
+.input-field {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    border-radius: 1.2rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+}
+.input-field i { color: #94a3b8; font-size: 1rem; margin-right: 0.7rem; }
+.input-field input {
+    border: none; background: transparent; width: 100%;
+    font-size: 0.95rem; font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    outline: none; color: #0f172a;
+}
+.input-field input::placeholder { color: #94a3b8; font-weight: 400; }
+.input-field.has-error { border-color: #e11d48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1); }
+
+/* ── Error Banner ──────────────────────────────── */
+.form-error-banner {
+    background: #fff0f3;
+    border: 1px solid #fecdd3;
+    border-radius: 0.8rem;
+    padding: 0.6rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+    color: #be123c;
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+}
+.form-error-banner.visible { display: flex; }
+
+/* ── Submit Button ─────────────────────────────── */
+.action-btn {
+    width: 100%;
+    background: #0f172a;
+    color: white;
+    font-weight: 700;
+    padding: 0.875rem 0;
+    border: none;
+    border-radius: 2rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.6rem;
+    margin-bottom: 1rem;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.action-btn:hover    { background: #2d3a5e; transform: scale(0.98); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1); }
+.action-btn:active   { transform: scale(0.96); }
+.action-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+/* ── Password Strength ─────────────────────────── */
+.strength-bar         { height: 4px; border-radius: 4px; background: #e2e8f0; margin-top: 6px; overflow: hidden; }
+.strength-bar-fill    { height: 100%; width: 0%; border-radius: 4px; background: #e2e8f0; transition: width 0.3s, background 0.3s; }
+.strength-label       { font-size: 0.72rem; color: #94a3b8; margin-top: 4px; font-weight: 500; }
+
+/* ── Checkbox ──────────────────────────────────── */
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.2rem;
+    font-size: 0.82rem;
+    color: #5b6e8c;
+}
+.checkbox-wrapper input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+.checkbox-wrapper a { font-weight: 600; text-decoration: none; }
+.checkbox-wrapper a:hover { text-decoration: underline; }
+
+/* ── Links ─────────────────────────────────────── */
+.switch-link { text-align: center; margin-top: 1.2rem; font-size: 0.82rem; color: #5b6e8c; }
+.switch-link a { font-weight: 700; text-decoration: none; margin-left: 4px; }
+.switch-link a:hover { text-decoration: underline; }
+
+.terms-note  { font-size: 0.7rem; text-align: center; color: #5b6e8c; margin-top: 0.8rem; line-height: 1.4; }
+
+/* ── Toast ─────────────────────────────────────── */
+.toast {
+    position: fixed;
+    bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0f172a;
+    color: #fff;
+    padding: 0.7rem 1.6rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+}
+.toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: #166534; }
+.toast.error   { background: #991b1b; }
+
+/* ── Footer ────────────────────────────────────── */
+.footer-attribution {
+    text-align: center;
+    margin-top: 1.8rem;
+    font-size: 0.7rem;
+    color: #7f8c9b;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* ── Responsive ────────────────────────────────── */
+@media (max-width: 480px) {
+    body { padding: 1rem; }
+    .hero-section h1 { font-size: 2.2rem; }
+    .auth-card { padding: 1.6rem; }
+}
