@@ -1,8 +1,10 @@
 from functools import wraps
 from flask import request, jsonify
 import jwt, os
+from dotenv import load_dotenv
 
-SECRET_KEY = os.environ.get("JWT_SECRET", "your-secret-key")
+load_dotenv()
+SECRET_KEY = os.getenv("JWT_SECRET")
 
 def jwt_required(f):
     @wraps(f)

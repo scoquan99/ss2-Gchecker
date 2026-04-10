@@ -1,16 +1,18 @@
 from flask import Blueprint, request, jsonify
 import jwt, datetime, os
 from database.user_model import create_user, find_user, verify_password
+from dotenv import load_dotenv
 
+load_dotenv()
+SECRET_KEY = os.getenv("JWT_SECRET")
 auth_routes = Blueprint("auth_routes", __name__)
-SECRET_KEY = os.environ.get("JWT_SECRET", "your-secret-key")
 
 import re
 
 @auth_routes.route("/auth/register", methods=["POST"])
 def register():
     data = request.json
-    username = data.get("username", "")
+    username = data.get("username", "").strip()
     password = data.get("password", "")
     email = data.get("email", "").strip()
     full_name = data.get("full_name", "").strip()
