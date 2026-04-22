@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Check History | Text Quality Checker Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+
+        :root {
+            --bg-page: #f8fafc;
+            --card-bg: #ffffff;
+            --surface-elevated: #fcfcfd;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            --accent-primary: #3b82f6;
+            --accent-gradient: linear-gradient(135deg, #2563eb, #8b5cf6);
+            --accent-soft: #eff6ff;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-lg: 0 12px 32px rgba(15,23,42,0.08);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        body.dark-mode {
+            --bg-page: #0b0f19;
+            --card-bg: #111827;
+            --surface-elevated: #1f2937;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-light: #334155;
+            --border-medium: #475569;
+            --accent-soft: #1e3a8a20;
+            --shadow-lg: 0 12px 32px rgba(0,0,0,0.4);
+        }
+
+        body {
+            background: var(--bg-page);
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 100px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+        body::before { width: 40vw; height: 40vw; background: linear-gradient(135deg, #ff007a, #7928ca); top: -10%; left: -10%; }
+        body::after  { width: 45vw; height: 45vw; background: linear-gradient(135deg, #00d4ff, #10b981); bottom: -10%; right: -10%; }
+        body.dark-mode::before, body.dark-mode::after { opacity: 0.2; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+        /* ── HEADER ── */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 36px;
+            gap: 16px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: var(--shadow-sm);
+        }
+        .back-btn:hover { background: var(--accent-soft); color: var(--accent-primary); border-color: var(--accent-primary); }
+
+        .page-title h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(270deg, #ff007a, #7928ca, #00d4ff, #10b981, #ff007a);
+            background-size: 400% 400%;
+            animation: gradientTitle 8s ease infinite;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes gradientTitle {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .page-title p { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+
+        .dark-toggle {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border-light);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: var(--text-secondary);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+        .dark-toggle:hover { background: var(--accent-soft); color: var(--accent-primary); }
+
+        /* ── FILTER BAR ── */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .search-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+
+        .filter-select {
+            padding: 10px 14px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .filter-select:focus { outline: none; border-color: var(--accent-primary); }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card .stat-num {
+            font-size: 32px;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+        /* ── HISTORY LIST ── */
+        .history-list { display: flex; flex-direction: column; gap: 16px; }
+
+        .history-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .history-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: var(--accent-gradient);
+        }
+        .history-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+        .history-item-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .history-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        .history-date {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .lang-badge {
+            background: var(--accent-soft);
+            color: var(--accent-primary);
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .score-badge {
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .score-high   { background: #dcfce7; color: #166534; }
+        .score-medium { background: #fef3c7; color: #92400e; }
+        .score-low    { background: #fee2e2; color: #991b1b; }
+        body.dark-mode .score-high   { background: rgba(16,185,129,0.15); color: #34d399; }
+        body.dark-mode .score-medium { background: rgba(234,179,8,0.15);  color: #fde047; }
+        body.dark-mode .score-low    { background: rgba(239,68,68,0.15);  color: #fca5a5; }
+
+        .history-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .history-footer {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .error-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .pill-grammar { background: rgba(239,68,68,0.1);  color: #ef4444; }
+        .pill-style   { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .pill-spelling{ background: rgba(245,158,11,0.1); color: #f59e0b; }
+
+        .expand-btn {
+            margin-left: auto;
+            background: none;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .expand-btn:hover { background: var(--accent-soft); color: var(--accent-primary); border-color: var(--accent-primary); }
+
+        /* Detail expand */
+        .history-detail {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border-light);
+            animation: fadeIn 0.2s ease;
+        }
+        .history-detail.open { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+        .detail-section { margin-bottom: 16px; }
+        .detail-section h4 { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .detail-text { font-size: 14px; line-height: 1.7; color: var(--text-secondary); background: var(--surface-elevated); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); }
+
+        .error-item { font-size: 13px; color: var(--text-secondary); padding: 8px 0; border-bottom: 1px dashed var(--border-light); display: flex; align-items: flex-start; gap: 8px; }
+        .error-item:last-child { border-bottom: none; }
+        .error-item i { margin-top: 2px; flex-shrink: 0; }
+
+        .copy-small-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--accent-soft);
+            color: var(--accent-primary);
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .copy-small-btn:hover { background: var(--accent-primary); color: white; }
+
+        /* ── EMPTY / LOADING ── */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state i { font-size: 60px; margin-bottom: 16px; opacity: 0.4; display: block; }
+        .empty-state p { font-size: 16px; }
+
+        .loading-skeleton {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .skel-line {
+            height: 14px;
+            background: linear-gradient(90deg, var(--border-light) 25%, var(--surface-elevated) 50%, var(--border-light) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ── BOTTOM NAV ── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-light);
+            border-radius: 99px;
+            padding: 6px;
+            gap: 4px;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+        }
+        body.dark-mode .bottom-nav { background: rgba(17,24,39,0.85); }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: 99px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .nav-item:hover { color: var(--text-primary); background: var(--accent-soft); }
+        .nav-item.active { background: var(--accent-primary); color: white; }
+        .nav-item i { font-size: 18px; }
+
+        @media (max-width: 600px) {
+            .stats-bar { grid-template-columns: 1fr; }
+            .page-header { flex-wrap: wrap; }
+            .nav-item span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <a href="index.html" class="back-btn">
+            <i class="ph ph-arrow-left"></i> Quay lại
+        </a>
+        <div class="page-title">
+            <h1>Check History</h1>
+            <p>Lịch sử các lần kiểm tra văn bản của bạn</p>
+        </div>
+        <div class="dark-toggle" onclick="toggleDark()" title="Chế độ tối">
+            <i class="ph ph-moon"></i>
+        </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-num" id="statTotal">—</div>
+            <div class="stat-label"><i class="ph-fill ph-clock-counter-clockwise"></i> Tổng lần check</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statAvgScore">—</div>
+            <div class="stat-label"><i class="ph-fill ph-chart-line-up"></i> Điểm trung bình</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statErrors">—</div>
+            <div class="stat-label"><i class="ph-fill ph-warning-circle"></i> Tổng lỗi đã sửa</div>
+        </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍  Tìm kiếm trong văn bản..." oninput="filterHistory()">
+        <select class="filter-select" id="langFilter" onchange="filterHistory()">
+            <option value="">Tất cả ngôn ngữ</option>
+            <option value="en-US">English (US)</option>
+            <option value="en-GB">English (UK)</option>
+            <option value="vi">Tiếng Việt</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="es">Español</option>
+        </select>
+        <select class="filter-select" id="scoreFilter" onchange="filterHistory()">
+            <option value="">Tất cả điểm</option>
+            <option value="high">Cao (≥80)</option>
+            <option value="medium">Trung bình (50-79)</option>
+            <option value="low">Thấp (&lt;50)</option>
+        </select>
+    </div>
+
+    <!-- History list -->
+    <div class="history-list" id="historyList">
+        <!-- Loading skeletons -->
+        <div class="loading-skeleton" id="skel1">
+            <div class="skel-line" style="width:40%; margin-bottom:14px;"></div>
+            <div class="skel-line" style="width:100%;"></div>
+            <div class="skel-line" style="width:80%;"></div>
+        </div>
+        <div class="loading-skeleton" id="skel2">
+            <div class="skel-line" style="width:35%; margin-bottom:14px;"></div>
+            <div class="skel-line" style="width:100%;"></div>
+            <div class="skel-line" style="width:70%;"></div>
+        </div>
+        <div class="loading-skeleton" id="skel3">
+            <div class="skel-line" style="width:45%; margin-bottom:14px;"></div>
+            <div class="skel-line" style="width:100%;"></div>
+            <div class="skel-line" style="width:60%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item">
+        <i class="ph-fill ph-house"></i> <span>Home</span>
+    </a>
+    <a href="history.html" class="nav-item active">
+        <i class="ph-fill ph-clock-counter-clockwise"></i> <span>History</span>
+    </a>
+    <a href="login.html" class="nav-item" id="navAuth">
+        <i class="ph-fill ph-user"></i> <span>Account</span>
+    </a>
+</nav>
+
+<script>
+    const BASE_URL = "http://localhost:5000";
+    const token = localStorage.getItem("token");
+    let allHistory = [];
+
+    /* ── Dark mode ── */
+    if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark-mode");
+    function toggleDark() {
+        document.body.classList.toggle("dark-mode");
+        localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+    }
+
+    /* ── Auth check ── */
+    if (!token) window.location.href = "login.html";
+
+    /* ── Fetch history ── */
+    async function loadHistory() {
+        try {
+            const res = await fetch(BASE_URL + "/history", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (res.status === 401) { window.location.href = "login.html"; return; }
+            const data = await res.json();
+            allHistory = data.history || data || [];
+            renderStats(allHistory);
+            renderHistory(allHistory);
+        } catch (e) {
+            document.getElementById("historyList").innerHTML = `
+                <div class="empty-state">
+                    <i class="ph ph-wifi-slash"></i>
+                    <p>Không thể kết nối server. Kiểm tra backend đang chạy không.</p>
+                </div>`;
+        }
+    }
+
+    /* ── Render stats ── */
+    function renderStats(items) {
+        document.getElementById("statTotal").textContent = items.length;
+        if (!items.length) { document.getElementById("statAvgScore").textContent = "—"; document.getElementById("statErrors").textContent = "—"; return; }
+        const scores = items.map(i => i.result?.summary?.score || 0);
+        const avg = Math.round(scores.reduce((a,b) => a+b, 0) / scores.length);
+        const totalErrors = items.reduce((acc, i) => acc + (i.result?.summary?.total || 0), 0);
+        document.getElementById("statAvgScore").textContent = avg;
+        document.getElementById("statErrors").textContent = totalErrors;
+    }
+
+    /* ── Filter ── */
+    function filterHistory() {
+        const q    = document.getElementById("searchInput").value.toLowerCase();
+        const lang = document.getElementById("langFilter").value;
+        const score= document.getElementById("scoreFilter").value;
+
+        const filtered = allHistory.filter(item => {
+            const text = (item.text || "").toLowerCase();
+            const s = item.result?.summary?.score || 0;
+            const l = item.lang || item.result?.lang || "";
+
+            const matchQ    = !q    || text.includes(q);
+            const matchLang = !lang || l === lang;
+            const matchScore = !score
+                || (score === "high"   && s >= 80)
+                || (score === "medium" && s >= 50 && s < 80)
+                || (score === "low"    && s < 50);
+
+            return matchQ && matchLang && matchScore;
+        });
+
+        renderHistory(filtered);
+    }
+
+    /* ── Render list ── */
+    function renderHistory(items) {
+        const container = document.getElementById("historyList");
+
+        if (!items.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="ph ph-note-blank"></i>
+                    <p>Chưa có lịch sử kiểm tra nào.</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = items.map((item, idx) => {
+            const summary  = item.result?.summary || {};
+            const score    = summary.score ?? "—";
+            const grammar  = summary.grammar || 0;
+            const style    = summary.style   || 0;
+            const spelling = summary.spelling || 0;
+            const lang     = item.lang || item.result?.lang || "en-US";
+            const date     = item.created_at ? new Date(item.created_at).toLocaleString("vi-VN") : "—";
+            const text     = item.text || "";
+            const corrected= item.result?.corrected_text || text;
+            const grammarErrors = item.result?.grammar_errors || [];
+            const styleErrors   = item.result?.style_errors   || [];
+
+            const scoreClass = score >= 80 ? "score-high" : score >= 50 ? "score-medium" : "score-low";
+
+            return `
+            <div class="history-item" id="item-${idx}">
+                <div class="history-item-header">
+                    <div class="history-meta">
+                        <span class="history-date"><i class="ph ph-calendar-blank"></i> ${date}</span>
+                        <span class="lang-badge">${lang}</span>
+                    </div>
+                    <span class="score-badge ${scoreClass}">Score: ${score}</span>
+                </div>
+
+                <div class="history-text">${text}</div>
+
+                <div class="history-footer">
+                    ${grammar  ? `<span class="error-pill pill-grammar"><i class="ph-fill ph-warning"></i> ${grammar} Grammar</span>` : ""}
+                    ${style    ? `<span class="error-pill pill-style"><i class="ph-fill ph-info"></i> ${style} Style</span>` : ""}
+                    ${spelling ? `<span class="error-pill pill-spelling"><i class="ph-fill ph-text-aa"></i> ${spelling} Spelling</span>` : ""}
+                    ${!grammar && !style && !spelling ? `<span style="font-size:13px; color:#10b981;"><i class="ph-fill ph-check-circle"></i> Không có lỗi</span>` : ""}
+                    <button class="expand-btn" onclick="toggleDetail(${idx})">
+                        Chi tiết <i class="ph ph-caret-down" id="caret-${idx}"></i>
+                    </button>
+                </div>
+
+                <div class="history-detail" id="detail-${idx}">
+                    <div class="detail-section">
+                        <h4><i class="ph ph-article"></i> Văn bản gốc</h4>
+                        <div class="detail-text">${text}</div>
+                    </div>
+
+                    ${corrected !== text ? `
+                    <div class="detail-section">
+                        <h4><i class="ph-fill ph-check-square-offset"></i> Văn bản đã sửa</h4>
+                        <div class="detail-text">${corrected}</div>
+                        <button class="copy-small-btn" onclick="copyText('${corrected.replace(/'/g, "\\'")}', this)">
+                            <i class="ph ph-copy"></i> Sao chép
+                        </button>
+                    </div>` : ""}
+
+                    ${grammarErrors.length ? `
+                    <div class="detail-section">
+                        <h4><i class="ph-fill ph-warning" style="color:#ef4444"></i> Lỗi ngữ pháp</h4>
+                        ${grammarErrors.slice(0, 5).map(e => `
+                            <div class="error-item">
+                                <i class="ph-fill ph-dot" style="color:#ef4444; font-size:16px;"></i>
+                                <span>${e.message}${e.suggestions?.length ? ` → <strong>${e.suggestions[0]}</strong>` : ""}</span>
+                            </div>`).join("")}
+                        ${grammarErrors.length > 5 ? `<div style="font-size:13px; color:var(--text-muted); margin-top:6px;">...và ${grammarErrors.length - 5} lỗi khác</div>` : ""}
+                    </div>` : ""}
+
+                    ${styleErrors.length ? `
+                    <div class="detail-section">
+                        <h4><i class="ph-fill ph-info" style="color:#3b82f6"></i> Gợi ý phong cách</h4>
+                        ${styleErrors.slice(0, 3).map(e => `
+                            <div class="error-item">
+                                <i class="ph-fill ph-dot" style="color:#3b82f6; font-size:16px;"></i>
+                                <span>${e.message}</span>
+                            </div>`).join("")}
+                    </div>` : ""}
+                </div>
+            </div>`;
+        }).join("");
+    }
+
+    /* ── Toggle detail ── */
+    function toggleDetail(idx) {
+        const detail = document.getElementById(`detail-${idx}`);
+        const caret  = document.getElementById(`caret-${idx}`);
+        detail.classList.toggle("open");
+        caret.style.transform = detail.classList.contains("open") ? "rotate(180deg)" : "rotate(0deg)";
+    }
+
+    /* ── Copy text ── */
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            btn.innerHTML = '<i class="ph-fill ph-check"></i> Đã sao chép!';
+            btn.style.background = "#10b981";
+            btn.style.color = "white";
+            setTimeout(() => {
+                btn.innerHTML = '<i class="ph ph-copy"></i> Sao chép';
+                btn.style.background = "";
+                btn.style.color = "";
+            }, 2000);
+        });
+    }
+
+    loadHistory();
+</script>
+</body>
+</html>
