@@ -1,6 +1,8 @@
 import os
 import json
 from google.genai import Client
+from dotenv import load_dotenv
+load_dotenv()
 
 class AIModel:
     def __init__(self):
@@ -10,6 +12,7 @@ class AIModel:
             self.client = Client(api_key=self.api_key)
         else:
             self.client = None
+        print(f"DEBUG: Key đang dùng là: {self.api_key[:10]}...")
 
     def analyze(self, text, mode="structural", tone="Academic and neutral"):
         if not self.configured:
@@ -125,7 +128,7 @@ class AIModel:
         """
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-2.0-flash",
                 contents=prompt
             )
             result_text = response.text.strip()

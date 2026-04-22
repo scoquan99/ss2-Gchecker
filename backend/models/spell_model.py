@@ -80,9 +80,6 @@ Chỉ trả về JSON thuần túy, không giải thích thêm, theo đúng form
 
         tool = self._get_tool(lang)
 
-        blob = TextBlob(text)
-        corrected_text = str(blob.correct())
-
         matches = tool.check(text)
         corrected_text = lt_utils.correct(text, matches)
 
