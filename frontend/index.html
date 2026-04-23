@@ -755,8 +755,148 @@
             .two-columns { grid-template-columns: 1fr; gap: 20px; }
             .bottom-nav { width: 90%; justify-content: space-between; padding: 8px; }
             .nav-item { padding: 10px 16px; }
-            .nav-item span:not(.nav-icon) { display: none; /* Ẩn chữ trên mobile */ }
+            .nav-item span:not(.nav-icon) { display: none; }
             .result-card { padding: 20px; }
+        }
+
+        /* ── BOTTOM NAV ── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 24px; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-light);
+            border-radius: 99px;
+            padding: 6px; gap: 4px;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+        }
+        body.dark-mode .bottom-nav { background: rgba(17,24,39,0.85); }
+        .nav-item {
+            display: flex; align-items: center; gap: 6px;
+            padding: 10px 20px; border-radius: 99px;
+            font-size: 14px; font-weight: 600;
+            color: var(--text-muted); cursor: pointer;
+            text-decoration: none; border: none; background: none;
+            font-family: inherit;
+        }
+        .nav-item:hover { color: var(--text-primary); background: var(--accent-soft); }
+        .nav-item.active { background: var(--accent-primary); color: white; }
+        .nav-item i { font-size: 18px; }
+
+        /* ── HISTORY DRAWER ── */
+        .history-drawer {
+            position: fixed;
+            top: 0; right: -480px;
+            width: 480px; max-width: 100vw;
+            height: 100vh;
+            background: var(--card-bg);
+            border-left: 1px solid var(--border-light);
+            box-shadow: -12px 0 40px rgba(0,0,0,0.15);
+            z-index: 1500;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.35s cubic-bezier(0.2, 0, 0, 1);
+            overflow: hidden;
+        }
+        .history-drawer.open { right: 0; }
+
+        .drawer-overlay {
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,0.5);
+            z-index: 1499;
+            display: none;
+            backdrop-filter: blur(4px);
+        }
+        .drawer-overlay.open { display: block; }
+
+        .drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-light);
+            flex-shrink: 0;
+        }
+        .drawer-header h3 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .drawer-close {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--surface-elevated); border: 1px solid var(--border-light);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 18px; color: var(--text-muted);
+        }
+        .drawer-close:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+
+        .drawer-search { padding: 16px 24px; border-bottom: 1px solid var(--border-light); flex-shrink: 0; }
+        .drawer-search input {
+            width: 100%; padding: 10px 14px;
+            border: 1px solid var(--border-light); border-radius: var(--radius-sm);
+            background: var(--surface-elevated); color: var(--text-primary);
+            font-size: 14px; font-family: inherit;
+        }
+        .drawer-search input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+
+        .drawer-stats {
+            display: grid; grid-template-columns: repeat(3,1fr);
+            gap: 1px; background: var(--border-light);
+            border-bottom: 1px solid var(--border-light); flex-shrink: 0;
+        }
+        .drawer-stat { background: var(--surface-elevated); padding: 12px; text-align: center; }
+        .drawer-stat .ds-num { font-size: 22px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .drawer-stat .ds-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .drawer-body { flex: 1; overflow-y: auto; padding: 16px 24px; }
+
+        .h-item {
+            background: var(--surface-elevated); border: 1px solid var(--border-light);
+            border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;
+            position: relative; overflow: hidden;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .h-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent-gradient); }
+        .h-item:hover { transform: translateX(3px); box-shadow: var(--shadow-md); }
+
+        .h-item-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+        .h-date { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+        .h-score { border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 700; }
+        .h-score.high   { background: #dcfce7; color: #166534; }
+        .h-score.medium { background: #fef3c7; color: #92400e; }
+        .h-score.low    { background: #fee2e2; color: #991b1b; }
+        body.dark-mode .h-score.high   { background: rgba(16,185,129,0.15); color: #34d399; }
+        body.dark-mode .h-score.medium { background: rgba(234,179,8,0.15);  color: #fde047; }
+        body.dark-mode .h-score.low    { background: rgba(239,68,68,0.15);  color: #fca5a5; }
+
+        .h-text {
+            font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden; margin-bottom: 10px;
+        }
+
+        .h-pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .h-pill { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 3px; }
+        .h-pill.grammar  { background: rgba(239,68,68,0.1);  color: #ef4444; }
+        .h-pill.style    { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .h-pill.lang     { background: var(--accent-soft);   color: var(--accent-primary); }
+
+        .h-reuse-btn {
+            margin-left: auto; background: none;
+            border: 1px solid var(--border-medium); border-radius: 20px;
+            padding: 4px 12px; font-size: 11px; font-weight: 600;
+            color: var(--text-muted); cursor: pointer; white-space: nowrap;
+        }
+        .h-reuse-btn:hover { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
+
+        .drawer-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .drawer-empty i { font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+        .h-skel { background: var(--surface-elevated); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; }
+        .h-skel-line {
+            height: 12px;
+            background: linear-gradient(90deg, var(--border-light) 25%, var(--surface-elevated) 50%, var(--border-light) 75%);
+            background-size: 200% 100%; animation: shimmer 1.2s infinite;
+            border-radius: 6px; margin-bottom: 8px;
         }
     </style>
 </head>
@@ -949,6 +1089,24 @@
     <button class="tip-close" onclick="closeTooltip()">×</button>
     <div class="tip-msg" id="tooltipMsg"></div>
     <div id="tooltipFixes"></div>
+</div>
+
+<!-- History Drawer -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeHistory()"></div>
+<div class="history-drawer" id="historyDrawer">
+    <div class="drawer-header">
+        <h3><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--accent-primary)"></i> Lịch sử kiểm tra</h3>
+        <div class="drawer-close" onclick="closeHistory()"><i class="ph ph-x"></i></div>
+    </div>
+    <div class="drawer-search">
+        <input type="text" id="drawerSearch" placeholder="🔍 Tìm trong lịch sử..." oninput="filterDrawer()">
+    </div>
+    <div class="drawer-stats">
+        <div class="drawer-stat"><div class="ds-num" id="dStatTotal">—</div><div class="ds-label">Tổng lần check</div></div>
+        <div class="drawer-stat"><div class="ds-num" id="dStatAvg">—</div><div class="ds-label">Điểm TB</div></div>
+        <div class="drawer-stat"><div class="ds-num" id="dStatErrors">—</div><div class="ds-label">Tổng lỗi</div></div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
 </div>
 
 <div class="popup-overlay" id="analyzePopup" onclick="hideAnalyzePopup()">
@@ -1381,8 +1539,110 @@
 
     window.selectMode = selectMode;
     window.toggleExtrasPanel = toggleExtrasPanel;
+
+    /* ── HISTORY DRAWER ── */
+    let drawerHistory = [];
+
+    window.openHistory = async function() {
+        document.getElementById("historyDrawer").classList.add("open");
+        document.getElementById("drawerOverlay").classList.add("open");
+        await loadDrawerHistory();
+    };
+
+    window.closeHistory = function() {
+        document.getElementById("historyDrawer").classList.remove("open");
+        document.getElementById("drawerOverlay").classList.remove("open");
+    };
+
+    async function loadDrawerHistory() {
+        const body = document.getElementById("drawerBody");
+        body.innerHTML = `
+            <div class="h-skel"><div class="h-skel-line" style="width:40%"></div><div class="h-skel-line"></div><div class="h-skel-line" style="width:70%"></div></div>
+            <div class="h-skel"><div class="h-skel-line" style="width:35%"></div><div class="h-skel-line"></div><div class="h-skel-line" style="width:60%"></div></div>
+            <div class="h-skel"><div class="h-skel-line" style="width:45%"></div><div class="h-skel-line"></div><div class="h-skel-line" style="width:75%"></div></div>`;
+        try {
+            const res = await fetch(BASE_URL + "/history", {
+                headers: { "Authorization": "Bearer " + (token || "") }
+            });
+            if (res.status === 401) { window.location.href = "login.html"; return; }
+            const data = await res.json();
+            drawerHistory = data.history || data || [];
+            renderDrawerStats(drawerHistory);
+            renderDrawerList(drawerHistory);
+        } catch(e) {
+            body.innerHTML = `<div class="drawer-empty"><i class="ph ph-wifi-slash"></i><p>Không kết nối được server</p></div>`;
+        }
+    }
+
+    function renderDrawerStats(items) {
+        document.getElementById("dStatTotal").textContent = items.length;
+        if (!items.length) return;
+        const avg = Math.round(items.reduce((a,i) => a + (i.result?.summary?.score || 0), 0) / items.length);
+        const total = items.reduce((a,i) => a + (i.result?.summary?.total || 0), 0);
+        document.getElementById("dStatAvg").textContent = avg;
+        document.getElementById("dStatErrors").textContent = total;
+    }
+
+    window.filterDrawer = function() {
+        const q = document.getElementById("drawerSearch").value.toLowerCase();
+        renderDrawerList(drawerHistory.filter(i => (i.text || "").toLowerCase().includes(q)));
+    };
+
+    function renderDrawerList(items) {
+        const body = document.getElementById("drawerBody");
+        if (!items.length) {
+            body.innerHTML = `<div class="drawer-empty"><i class="ph ph-note-blank"></i><p>Không có kết quả</p></div>`;
+            return;
+        }
+        body.innerHTML = items.map((item, idx) => {
+            const s     = item.result?.summary || {};
+            const score = s.score ?? "—";
+            const sc    = score >= 80 ? "high" : score >= 50 ? "medium" : "low";
+            const date  = item.created_at ? new Date(item.created_at).toLocaleString("vi-VN") : "—";
+            const lang  = item.lang || item.result?.lang || "en-US";
+            return `
+            <div class="h-item">
+                <div class="h-item-top">
+                    <span class="h-date"><i class="ph ph-calendar-blank"></i> ${date}</span>
+                    <span class="h-score ${sc}">Score: ${score}</span>
+                </div>
+                <div class="h-text">${item.text || ""}</div>
+                <div class="h-pills">
+                    <span class="h-pill lang">${lang}</span>
+                    ${s.grammar ? `<span class="h-pill grammar"><i class="ph-fill ph-warning"></i> ${s.grammar} lỗi</span>` : ""}
+                    ${s.style   ? `<span class="h-pill style"><i class="ph-fill ph-info"></i> ${s.style} style</span>` : ""}
+                    <button class="h-reuse-btn" onclick="reuseText(${idx})"><i class="ph ph-arrow-counter-clockwise"></i> Dùng lại</button>
+                </div>
+            </div>`;
+        }).join("");
+    }
+
+    window.reuseText = function(idx) {
+        const item = drawerHistory[idx];
+        if (!item) return;
+        const ta = document.getElementById("inputText");
+        ta.value = item.text || "";
+        const len = ta.value.length;
+        const cc = document.getElementById("charCounter");
+        if (cc) cc.textContent = `${len} / 5000`;
+        closeHistory();
+        ta.focus();
+    };
 </script>
 <script src="config/config.js"></script>
 <script src="assets/js/translations.js"></script>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <i class="ph-fill ph-house"></i> <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="openHistory()">
+        <i class="ph-fill ph-clock-counter-clockwise"></i> <span>History</span>
+    </button>
+    <button class="nav-item" onclick="handleAuthAction()">
+        <i class="ph-fill ph-user"></i> <span id="navAuthLabel">Account</span>
+    </button>
+</nav>
 </body>
 </html>
