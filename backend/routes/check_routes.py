@@ -78,3 +78,71 @@ def history():
     limit = request.args.get("limit", 20, type=int)
     items = get_history(limit=limit, username=username)
     return jsonify({"history": items})
+
+@check_routes.route("/thesaurus", methods=["POST"])
+@jwt_required
+def thesaurus():
+    from nltk.corpus import wordnet
+    data = request.json
+    word = data.get("word", "").strip()
+    if not word:
+        return jsonify({"error": "Word is required"}), 400
+
+    synonyms, antonyms = set(), set()
+    for syn in wordnet.synsets(word):
+        for lemma in syn.lemmas():
+            synonyms.add(lemma.name().replace("_", " "))
+            if lemma.antonyms():
+                antonyms.add(lemma.antonyms()[0].name().replace("_", " "))
+
+    synonyms.discard(word)
+    return jsonify({
+        "synonyms": list(synonyms)[:15],
+        "antonyms": list(antonyms)[:10]
+    })
+
+
+@check_routes.route("/capitalize", methods=["POST"])
+@jwt_required
+def capitalize():
+    import string
+    data = request.json
+    text = data.get("text", "").strip()
+    if not text:
+        return jsonify({"error": "Text is required"}), 400
+
+    # AP style: capitalize tất cả trừ articles/prepositions ngắn
+    stop_words = {"a","an","the","and","but","or","for","nor","on","at","to","by","in","of","up","as"}
+    words = text.split()
+    result = []
+    for i, w in enumerate(words):
+        if i == 0 or i == len(words)-1 or w.lower() not in stop_words:
+            result.append(w.capitalize())
+        else:
+            result.append(w.lower())
+    return jsonify({"capitalized": " ".join(result)})
+
+
+@check_routes.route("/ai_detect", methods=["POST"])
+@jwt_required
+def ai_detect():
+    data = request.json
+    text = data.get("text", "").strip()
+    if not text:
+        return jsonify({"error": "Text is required"}), 400
+
+    from google import genai as g
+    import os
+    c = g.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    prompt = f"""Analyze if this text was written by AI or a human.
+Return ONLY this JSON, no explanation:
+{{"ai_probability": 75, "reasoning": "brief explanation"}}
+Text: {text}"""
+    try:
+        res = c.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+        import json, re
+        raw = res.text.strip().strip("```json").strip("```").strip()
+        data_out = json.loads(raw)
+        return jsonify(data_out)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
