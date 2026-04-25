@@ -1139,8 +1139,10 @@
 
     /* ── Copy to clipboard ── */
     window.copyResult = function() {
-        const el = document.getElementById("correctedText");
-        const text = el.innerText || el.textContent;
+        // Dùng plain text đã lưu, không lấy innerHTML (có thể chứa HTML tags)
+        const text = window._correctedPlainText
+            || document.getElementById("correctedText").innerText
+            || "";
         navigator.clipboard.writeText(text).then(() => {
             const btn = document.getElementById("copyBtnText");
             btn.textContent = "Đã sao chép ✓";
@@ -1296,6 +1298,24 @@
         overlay.querySelector('.popup-progress').style.display = 'none';
         resultsDiv.style.display = 'grid';
         resultsDiv.innerHTML = resultsHtml;
+        // Attach click events cho error-highlight bên trong popup
+        resultsDiv.querySelectorAll(".error-highlight").forEach(span => {
+            span.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const tip = document.getElementById("highlightTooltip");
+                const msg = span.dataset.msg || "Lỗi phát hiện";
+                const fixes = JSON.parse(span.dataset.fixes || "[]");
+                document.getElementById("tooltipMsg").textContent = msg;
+                const fixesDiv = document.getElementById("tooltipFixes");
+                fixesDiv.innerHTML = fixes.length
+                    ? fixes.slice(0,3).map(f => `<button class="tip-fix" onclick="closeTooltip()">${f}</button>`).join("")
+                    : `<span style="font-size:13px;color:var(--text-muted)">Không có gợi ý</span>`;
+                const rect = span.getBoundingClientRect();
+                tip.style.top  = (rect.bottom + window.scrollY + 8) + "px";
+                tip.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 340) + "px";
+                tip.classList.add("open");
+            });
+        });
         applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en'); // Apply to the new content
         
         bar.style.width = '100%';
@@ -1364,8 +1384,7 @@
             });
             const payload = await response.json();
             if (!response.ok) throw new Error(payload.error || (window.t ? t('server-error','Server error') : 'Server error'));
-            document.getElementById("correctedText").innerHTML = payload.highlighted_text || payload.corrected_text || text;
-            
+            // KHÔNG set correctedText ở đây - sẽ set sau khi build interactive highlight
             const stats = payload.stats || {};
             document.getElementById("writingStatsList").innerHTML = `
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
@@ -1385,12 +1404,31 @@
             } else document.getElementById("sentenceHighlightsDiv").innerHTML = `<p style='color:var(--text-muted)'>${window.t ? t('no-highlights','No sentence highlights available.') : 'No sentence highlights available.'}</p>`;
             
             window.currentErrors = { grammar: payload.grammar_errors || [], style: payload.style_errors || [] };
+            window._correctedPlainText = payload.corrected_text || payload.original_text || text;
 
-            // Render interactive highlight trong correctedText
-            const grammarHL = buildInteractiveHighlight(payload.corrected_text || payload.original_text || "", window.currentErrors.grammar, 'grammar');
-            const styleHL   = buildInteractiveHighlight(payload.corrected_text || payload.original_text || "", window.currentErrors.style, 'style');
-            if (grammarHL || styleHL) {
-                document.getElementById("correctedText").innerHTML = grammarHL || styleHL;
+            // Build interactive highlight gộp cả grammar + style
+            const baseText = payload.corrected_text || payload.original_text || text;
+            const allErrors = [
+                ...(window.currentErrors.grammar || []).map(e => ({...e, _type:'grammar'})),
+                ...(window.currentErrors.style   || []).map(e => ({...e, _type:'style'}))
+            ].filter(e => e.offset !== undefined && e.length !== undefined)
+             .sort((a,b) => a.offset - b.offset);
+
+            if (allErrors.length) {
+                let result = [], last = 0;
+                allErrors.forEach((err, idx) => {
+                    if (err.offset < last) return; // skip overlapping
+                    result.push(baseText.substring(last, err.offset));
+                    const word  = baseText.substring(err.offset, err.offset + err.length);
+                    const fixes = JSON.stringify(err.suggestions || []);
+                    const cls   = err._type === 'grammar' ? 'grammar' : 'style';
+                    result.push(`<span class="error-highlight ${cls}" data-msg="${(err.message||'').replace(/"/g,"'")}" data-fixes='${fixes}' data-type="${err._type}" data-idx="${idx}">${word}</span>`);
+                    last = err.offset + err.length;
+                });
+                result.push(baseText.substring(last));
+                document.getElementById("correctedText").innerHTML = result.join("");
+            } else {
+                document.getElementById("correctedText").textContent = baseText;
             }
 
             // Hiện Fix All nếu có lỗi có suggestions
@@ -1411,7 +1449,10 @@
             if (payload.ai_analysis) {
                 aiPanel.hidden = false;
                 document.getElementById("aiAnalysisOutput").innerHTML = renderAIAnalysis(payload.ai_analysis);
-                if (payload.ai_analysis.improved_text) document.getElementById("correctedText").innerHTML = payload.ai_analysis.improved_text;
+                // Không ghi đè correctedText để giữ nguyên interactive highlight
+                if (payload.ai_analysis.improved_text) {
+                    window._correctedPlainText = payload.ai_analysis.improved_text;
+                }
             } else aiPanel.hidden = true;
             
             document.getElementById("results").hidden = false;
@@ -1419,10 +1460,13 @@
             attachHighlightEvents();
             
             // Build results HTML for popup
+            // Lấy HTML đã build với interactive highlight để dùng trong popup
+            const builtHL = document.getElementById("correctedText").innerHTML;
+
             let resultsHtml = `
                 <div class="result-card" style="border: 2px solid var(--accent-primary);">
                     <h4 data-i18n="optimized-title"><i class="ph-fill ph-sparkle" style="color: var(--accent-primary);"></i> ✨ Optimized Text</h4>
-                    <div>${payload.highlighted_text || payload.corrected_text || text}</div>
+                    <div style="font-size:15px; line-height:1.8;">${builtHL}</div>
                 </div>
                 <div class="result-card">
                     <h4 data-i18n="highlights-title"><i class="ph-fill ph-highlighter-circle" style="color: #fbbf24;"></i> 🖍️ Sentence Highlights</h4>
