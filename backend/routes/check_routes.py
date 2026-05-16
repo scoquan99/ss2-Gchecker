@@ -16,7 +16,6 @@ MAX_LENGTH = 5000
 
 
 def get_username_from_token(request):
-    """Lấy username từ JWT token trong header"""
     try:
         auth = request.headers.get("Authorization", "")
         token = auth.split(" ")[1]
@@ -33,13 +32,16 @@ def check():
     text = data.get("text", "")
     lang = data.get("lang", "en-US")
     mode = data.get("mode", "basic")
+    tone = data.get("tone", "Professional")
+    
+    print(f"🔍 DEBUG - Received mode: {mode}, tone: {tone}")
 
     if text.strip() == "":
         return jsonify({"error": "Text cannot be empty"}), 400
     if len(text) > MAX_LENGTH:
         return jsonify({"error": "Text exceeds 5000 characters"}), 400
 
-    result = checker.analyze_text(text, lang)
+    result = checker.analyze_text(text, lang, mode=mode, tone=tone)
 
     spelling_errors = len(text.split()) - len(result["corrected_text"].split())
     grammar_count   = len(result["grammar_errors"])
@@ -55,6 +57,8 @@ def check():
         "style_errors":     result["style_errors"],
         "lang":             lang,
         "mode":             mode,
+        "ai_analysis":      result.get("ai_analysis"),
+        "stats":            result.get("stats"),
         "summary": {
             "spelling": spelling_errors,
             "grammar":  grammar_count,
@@ -78,6 +82,7 @@ def history():
     limit = request.args.get("limit", 20, type=int)
     items = get_history(limit=limit, username=username)
     return jsonify({"history": items})
+
 
 @check_routes.route("/thesaurus", methods=["POST"])
 @jwt_required
@@ -105,13 +110,11 @@ def thesaurus():
 @check_routes.route("/capitalize", methods=["POST"])
 @jwt_required
 def capitalize():
-    import string
     data = request.json
     text = data.get("text", "").strip()
     if not text:
         return jsonify({"error": "Text is required"}), 400
 
-    # AP style: capitalize tất cả trừ articles/prepositions ngắn
     stop_words = {"a","an","the","and","but","or","for","nor","on","at","to","by","in","of","up","as"}
     words = text.split()
     result = []
@@ -128,21 +131,58 @@ def capitalize():
 def ai_detect():
     data = request.json
     text = data.get("text", "").strip()
-    if not text:
-        return jsonify({"error": "Text is required"}), 400
+    
+    if not text or len(text) < 30:
+        return jsonify({"ai_probability": 25, "reasoning": "Văn bản quá ngắn."})
 
-    from google import genai as g
-    import os
-    c = g.Client(api_key=os.getenv("GEMINI_API_KEY"))
-    prompt = f"""Analyze if this text was written by AI or a human.
-Return ONLY this JSON, no explanation:
-{{"ai_probability": 75, "reasoning": "brief explanation"}}
-Text: {text}"""
-    try:
-        res = c.models.generate_content(model="gemini-2.0-flash", contents=prompt)
-        import json, re
-        raw = res.text.strip().strip("```json").strip("```").strip()
-        data_out = json.loads(raw)
-        return jsonify(data_out)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Danh sách các key
+    keys = [
+        os.getenv("GEMINI_API_KEY_1"),
+        os.getenv("GEMINI_API_KEY_2"),
+        os.getenv("GEMINI_API_KEY_3")
+    ]
+    keys = [k for k in keys if k and len(k.strip()) > 15]  # Lọc key hợp lệ
+
+    if not keys:
+        return jsonify({"ai_probability": 35, "reasoning": "Không tìm thấy GEMINI_API_KEY nào."})
+
+    for i, api_key in enumerate(keys):
+        try:
+            from google import genai as g
+            import json
+            
+            client = g.Client(api_key=api_key)
+            
+            prompt = f"""
+Phân tích xem văn bản sau có phải do AI tạo ra hay không.
+Trả về chỉ JSON, không thêm gì khác:
+
+{{"ai_probability": 70, "reasoning": "Giải thích ngắn gọn bằng tiếng Việt"}}
+
+Văn bản: {text[:6000]}
+"""
+
+            res = client.models.generate_content(
+                model="gemini-2.5-flash",   # hoặc gemini-2.0-flash
+                contents=prompt
+            )
+            
+            raw = res.text.strip().strip("```json").strip("```").strip()
+            result = json.loads(raw)
+            print(f"✅ AI Detect thành công với key {i+1}")
+            return jsonify(result)
+
+        except Exception as e:
+            error_str = str(e).lower()
+            print(f"❌ Key {i+1} lỗi: {error_str[:100]}")
+            
+            if "quota" in error_str or "429" in error_str:
+                continue  # Thử key tiếp theo
+            else:
+                break  # Lỗi khác thì dừng
+
+    # Nếu tất cả key đều lỗi
+    return jsonify({
+        "ai_probability": 50,
+        "reasoning": "Tất cả API keys đều đang hết quota. Vui lòng thử lại sau hoặc thêm key mới."
+    })
