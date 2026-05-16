@@ -1045,7 +1045,7 @@
 
         <!-- Fix All Button -->
         <button class="fix-all-btn" id="fixAllBtn" onclick="applyFixAll()">
-            <i class="ph-fill ph-magic-wand"></i> Sửa tất cả lỗi tự động
+            <i class="ph-fill ph-magic-wand"></i> Fix all
         </button>
 
         <!-- Extras section: collapsible -->
@@ -1095,16 +1095,16 @@
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeHistory()"></div>
 <div class="history-drawer" id="historyDrawer">
     <div class="drawer-header">
-        <h3><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--accent-primary)"></i> Lịch sử kiểm tra</h3>
+        <h3><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--accent-primary)"></i>History</h3>
         <div class="drawer-close" onclick="closeHistory()"><i class="ph ph-x"></i></div>
     </div>
     <div class="drawer-search">
-        <input type="text" id="drawerSearch" placeholder="🔍 Tìm trong lịch sử..." oninput="filterDrawer()">
+        <input type="text" id="drawerSearch" placeholder="🔍 Find on History..." oninput="filterDrawer()">
     </div>
     <div class="drawer-stats">
-        <div class="drawer-stat"><div class="ds-num" id="dStatTotal">—</div><div class="ds-label">Tổng lần check</div></div>
-        <div class="drawer-stat"><div class="ds-num" id="dStatAvg">—</div><div class="ds-label">Điểm TB</div></div>
-        <div class="drawer-stat"><div class="ds-num" id="dStatErrors">—</div><div class="ds-label">Tổng lỗi</div></div>
+        <div class="drawer-stat"><div class="ds-num" id="dStatTotal">—</div><div class="ds-label">Total number of checks</div></div>
+        <div class="drawer-stat"><div class="ds-num" id="dStatAvg">—</div><div class="ds-label">AVG Points</div></div>
+        <div class="drawer-stat"><div class="ds-num" id="dStatErrors">—</div><div class="ds-label">Total Errors</div></div>
     </div>
     <div class="drawer-body" id="drawerBody"></div>
 </div>
@@ -1371,8 +1371,18 @@
     document.getElementById("checkButton").addEventListener("click", async () => {
         const text = document.getElementById("inputText").value.trim();
         if (!text) return showStatus(window.t ? t('enter-text-error','Please enter text to analyze.') : 'Please enter text to analyze.', "error");
-        let backendMode = activeMode === 'impact' ? 'clarity' : activeMode;
-        const tone = document.getElementById("toneInput").value || "Professional";
+        const modeMapping = {
+            basic: "basic",
+            tone: "tone",
+            structural: "structural",
+            clarity: "clarity",
+            impact: "impact"
+        };
+
+        let backendMode = modeMapping[activeMode] || "basic";
+        const tone = document.getElementById("toneInput").value.trim() || "Professional";
+
+        console.log(`[DEBUG] Mode selected: ${activeMode} → Backend mode: ${backendMode}, Tone: ${tone}`);
         showStatus(window.t ? t('analysis-loading','Analyzing with AI engine...') : 'Analyzing with AI engine...', "info");
         showAnalyzePopup();
         document.getElementById("results").hidden = true;
@@ -1382,7 +1392,9 @@
                 headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (token || "guest") },
                 body: JSON.stringify({ text, mode: backendMode, tone })
             });
+            console.log("Sent to backend:", { mode: backendMode, tone });
             const payload = await response.json();
+            console.log("Received from backend:", payload);
             if (!response.ok) throw new Error(payload.error || (window.t ? t('server-error','Server error') : 'Server error'));
             // KHÔNG set correctedText ở đây - sẽ set sau khi build interactive highlight
             const stats = payload.stats || {};
@@ -1407,7 +1419,7 @@
             window._correctedPlainText = payload.corrected_text || payload.original_text || text;
 
             // Build interactive highlight gộp cả grammar + style
-            const baseText = payload.corrected_text || payload.original_text || text;
+            const baseText = payload.original_text || text;
             const allErrors = [
                 ...(window.currentErrors.grammar || []).map(e => ({...e, _type:'grammar'})),
                 ...(window.currentErrors.style   || []).map(e => ({...e, _type:'style'}))
@@ -1655,7 +1667,7 @@
                     <span class="h-pill lang">${lang}</span>
                     ${s.grammar ? `<span class="h-pill grammar"><i class="ph-fill ph-warning"></i> ${s.grammar} lỗi</span>` : ""}
                     ${s.style   ? `<span class="h-pill style"><i class="ph-fill ph-info"></i> ${s.style} style</span>` : ""}
-                    <button class="h-reuse-btn" onclick="reuseText(${idx})"><i class="ph ph-arrow-counter-clockwise"></i> Dùng lại</button>
+                    <button class="h-reuse-btn" onclick="reuseText(${idx})"><i class="ph ph-arrow-counter-clockwise"></i> Reuse </button>
                 </div>
             </div>`;
         }).join("");
