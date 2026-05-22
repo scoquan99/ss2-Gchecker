@@ -888,6 +888,23 @@
         }
         .h-reuse-btn:hover { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
 
+        .h-delete-btn {
+            background: none; border: 1px solid var(--border-medium);
+            border-radius: 20px; padding: 4px 10px; font-size: 11px;
+            font-weight: 600; color: var(--text-muted); cursor: pointer;
+            display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+        }
+        .h-delete-btn:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+
+        .drawer-clear-btn {
+            display: flex; align-items: center; gap: 6px;
+            background: none; border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm); padding: 7px 14px;
+            font-size: 12px; font-weight: 600; color: var(--text-muted);
+            cursor: pointer;
+        }
+        .drawer-clear-btn:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+
         .drawer-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
         .drawer-empty i { font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.4; }
 
@@ -898,6 +915,181 @@
             background-size: 200% 100%; animation: shimmer 1.2s infinite;
             border-radius: 6px; margin-bottom: 8px;
         }
+
+        /* ── FLOATING CHAT ── */
+        .chat-bubble-btn {
+            position: fixed;
+            bottom: 90px;
+            right: 28px;
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #8b5cf6);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(139,92,246,0.45);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1400;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .chat-bubble-btn:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(139,92,246,0.6); }
+        .chat-bubble-btn .chat-badge {
+            position: absolute; top: -4px; right: -4px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: #ef4444; color: white;
+            font-size: 10px; font-weight: 700;
+            display: none; align-items: center; justify-content: center;
+            border: 2px solid var(--bg-page);
+        }
+        .chat-bubble-btn .chat-badge.visible { display: flex; }
+
+        .chat-window {
+            position: fixed;
+            bottom: 160px;
+            right: 28px;
+            width: 360px;
+            max-width: calc(100vw - 40px);
+            height: 500px;
+            max-height: calc(100vh - 180px);
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            box-shadow: 0 20px 60px rgba(15,23,42,0.2);
+            display: flex; flex-direction: column;
+            z-index: 1400;
+            overflow: hidden;
+            opacity: 0; visibility: hidden;
+            transform: translateY(16px) scale(0.97);
+            transform-origin: bottom right;
+            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+        }
+        .chat-window.open {
+            opacity: 1; visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .chat-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #2563eb, #8b5cf6);
+            color: white; flex-shrink: 0;
+        }
+        .chat-header-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .chat-header-info { flex: 1; }
+        .chat-header-info strong { font-size: 14px; font-weight: 700; display: block; }
+        .chat-header-info span { font-size: 11px; opacity: 0.85; }
+        .chat-header-close {
+            background: rgba(255,255,255,0.15); border: none; color: white;
+            width: 30px; height: 30px; border-radius: 50%;
+            cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .chat-header-close:hover { background: rgba(255,255,255,0.3); }
+
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 16px;
+            display: flex; flex-direction: column; gap: 12px;
+            scroll-behavior: smooth;
+        }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 4px; }
+
+        .chat-msg { display: flex; gap: 8px; align-items: flex-end; }
+        .chat-msg.user { flex-direction: row-reverse; }
+
+        .chat-msg-avatar {
+            width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, #2563eb, #8b5cf6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; color: white;
+        }
+        .chat-msg.user .chat-msg-avatar { background: var(--surface-elevated); color: var(--text-muted); border: 1px solid var(--border-light); }
+
+        .chat-msg-bubble {
+            max-width: 78%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 13px; line-height: 1.55;
+            word-break: break-word;
+        }
+        .chat-msg.ai .chat-msg-bubble {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+        .chat-msg.user .chat-msg-bubble {
+            background: linear-gradient(135deg, #2563eb, #8b5cf6);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-typing {
+            display: flex; gap: 4px; align-items: center; padding: 10px 14px;
+            background: var(--surface-elevated); border: 1px solid var(--border-light);
+            border-radius: 16px; border-bottom-left-radius: 4px;
+            width: fit-content;
+        }
+        .chat-typing span {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--text-muted);
+            animation: typingDot 1.2s infinite ease-in-out;
+        }
+        .chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        .chat-quick-btns {
+            padding: 8px 16px 0;
+            display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0;
+        }
+        .chat-quick-btn {
+            background: var(--accent-soft); color: var(--accent-primary);
+            border: 1px solid rgba(59,130,246,0.2); border-radius: 20px;
+            padding: 4px 12px; font-size: 11px; font-weight: 600;
+            cursor: pointer; white-space: nowrap;
+        }
+        .chat-quick-btn:hover { background: var(--accent-primary); color: white; }
+
+        .chat-input-area {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-light);
+            display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0;
+        }
+        .chat-input-area textarea {
+            flex: 1; resize: none; min-height: 38px; max-height: 100px;
+            padding: 9px 12px; border: 1px solid var(--border-light);
+            border-radius: var(--radius-md); font-size: 13px;
+            font-family: inherit; background: var(--surface-elevated);
+            color: var(--text-primary); line-height: 1.4;
+            overflow-y: auto;
+        }
+        .chat-input-area textarea:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+        .chat-send-btn {
+            width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, #2563eb, #8b5cf6);
+            border: none; color: white; font-size: 16px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.15s, opacity 0.15s;
+        }
+        .chat-send-btn:hover { transform: scale(1.08); }
+        .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .chat-clear-btn {
+            background: none; border: none; color: rgba(255,255,255,0.7);
+            cursor: pointer; font-size: 16px; padding: 4px;
+            display: flex; align-items: center;
+        }
+        .chat-clear-btn:hover { color: white; }
     </style>
 </head>
 <body>
@@ -1096,7 +1288,12 @@
 <div class="history-drawer" id="historyDrawer">
     <div class="drawer-header">
         <h3><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--accent-primary)"></i>History</h3>
-        <div class="drawer-close" onclick="closeHistory()"><i class="ph ph-x"></i></div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button class="drawer-clear-btn" onclick="deleteAllHistory()" title="Xóa tất cả lịch sử">
+                <i class="ph ph-trash"></i> Xóa tất cả
+            </button>
+            <div class="drawer-close" onclick="closeHistory()"><i class="ph ph-x"></i></div>
+        </div>
     </div>
     <div class="drawer-search">
         <input type="text" id="drawerSearch" placeholder="🔍 Find on History..." oninput="filterDrawer()">
@@ -1342,30 +1539,64 @@
     };
 
     function renderAIAnalysis(aiData) {
-        if (!aiData || typeof aiData !== 'object') return '<p class="text-muted">Không có thông tin chi tiết AI cho chế độ này.</p>';
+        if (!aiData || typeof aiData !== 'object') return '<p style="color:var(--text-muted)">Không có dữ liệu AI.</p>';
+        if (aiData.error) {
+            return `<div style="background:rgba(239,68,68,0.1);border:1px solid #ef4444;border-radius:8px;padding:16px;color:#ef4444;">
+                <strong>⚠️ Lỗi AI:</strong><p style="margin-top:8px;font-size:14px;">${aiData.error}</p></div>`;
+        }
+
+        // Màu và icon theo type issue
+        const typeStyle = {
+            tone:      { color: "#ec4899", icon: "🎭", label: "Tone" },
+            structure: { color: "#10b981", icon: "🔗", label: "Cấu trúc" },
+            clarity:   { color: "#f59e0b", icon: "✂️", label: "Độ rõ" },
+            impact:    { color: "#8b5cf6", icon: "⚡", label: "Từ vựng" },
+        };
+
         let html = "";
-        try {
-            if (aiData.improved_text) html += `<div style="background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm);"><strong>✨ AI Viết lại</strong><p style="margin-top: 8px;">${aiData.improved_text}</p></div>`;
-            const sections = [
-                { key: 'sentence_length_variations', title: '📏 Biến tấu câu' },
-                { key: 'logic_gap_transitions', title: '🔗 Luồng logic' },
-                { key: 'smothered_verbs', title: '💪 Động từ mạnh mẽ' },
-                { key: 'filler_words_stripped', title: '🧹 Lọc từ thừa' },
-                { key: 'passive_to_active', title: '⚡ Chuyển sang chủ động' }
-            ];
-            sections.forEach(sec => {
-                if (aiData[sec.key] && Array.isArray(aiData[sec.key]) && aiData[sec.key].length) {
-                    html += `<div style="margin-bottom: 16px;"><strong>${sec.title}</strong><ul style="margin-top: 6px; padding-left: 20px;">${aiData[sec.key].map(i => `<li>${i}</li>`).join('')}</ul></div>`;
-                }
-            });
-            if (aiData.detected_tone) html += `<div><strong>🎯 ${window.t ? t('detected-tone','Detected tone:') : 'Detected tone:'}</strong> ${aiData.detected_tone}</div>`;
-            if (aiData.clarity_score !== undefined) {
-                let score = aiData.clarity_score;
-                let color = score >= 8 ? '#10b981' : (score >= 6 ? '#f59e0b' : '#ef4444');
-                html += `<div style="margin-top: 20px;"><strong>📊 Điểm rõ ràng</strong><div style="display:flex; align-items:center; gap:16px; margin-top:8px;"><span style="font-weight:800; font-size:24px; color:${color};">${score}/10</span><div style="flex:1; height:8px; background:var(--border-light); border-radius:10px; overflow:hidden;"><div style="width:${score*10}%; height:100%; background:${color}; border-radius:10px;"></div></div></div></div>`;
-            }
-            return html || `<p>${window.t ? t('analysis-ready','Analysis ready.') : 'Analysis ready.'}</p>`;
-        } catch(e) { return `<p>${window.t ? t('analysis-failed','Unable to analyze data.') : 'Unable to analyze data.'}</p>`; }
+
+        // Tone score bar (mode style)
+        if (aiData.tone_score !== undefined && aiData.tone_score > 0) {
+            const s = aiData.tone_score;
+            const c = s >= 80 ? "#10b981" : s >= 60 ? "#f59e0b" : "#ef4444";
+            html += `<div style="margin-bottom:20px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <strong>🎯 Điểm khớp giọng điệu</strong>
+                    <span style="font-weight:800;font-size:22px;color:${c};">${s}/100</span>
+                </div>
+                <div style="height:10px;background:var(--border-light);border-radius:10px;overflow:hidden;">
+                    <div style="width:${s}%;height:100%;background:${c};border-radius:10px;transition:width 0.6s;"></div>
+                </div>
+            </div>`;
+        }
+
+        // Tone feedback
+        if (aiData.tone_feedback) {
+            html += `<div style="background:var(--accent-soft);border:1px solid var(--border-light);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:14px;line-height:1.6;">
+                <strong>💬 Nhận xét:</strong> ${aiData.tone_feedback}</div>`;
+        }
+
+        // Issues list
+        if (aiData.issues && aiData.issues.length) {
+            html += `<div><strong style="display:block;margin-bottom:12px;">📋 Chi tiết thay đổi (${aiData.issues.length})</strong>`;
+            html += aiData.issues.map(issue => {
+                const ts = typeStyle[issue.type] || { color: "#3b82f6", icon: "•", label: issue.type };
+                return `<div style="border:1px solid var(--border-light);border-radius:10px;padding:12px 14px;margin-bottom:10px;border-left:3px solid ${ts.color};">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                        <span style="font-size:13px;background:${ts.color}22;color:${ts.color};border-radius:20px;padding:2px 10px;font-weight:700;">${ts.icon} ${ts.label}</span>
+                    </div>
+                    <div style="font-size:13px;margin-bottom:6px;">
+                        <span style="color:var(--text-muted);text-decoration:line-through;">"${issue.original || ''}"</span>
+                        <span style="margin:0 6px;color:var(--text-muted);">→</span>
+                        <span style="color:${ts.color};font-weight:600;">"${issue.suggestion || ''}"</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">${issue.explanation || ''}</div>
+                </div>`;
+            }).join("");
+            html += "</div>";
+        }
+
+        return html || `<p style="color:var(--text-muted)">Phân tích hoàn tất.</p>`;
     }
 
     document.getElementById("checkButton").addEventListener("click", async () => {
@@ -1373,10 +1604,19 @@
         if (!text) return showStatus(window.t ? t('enter-text-error','Please enter text to analyze.') : 'Please enter text to analyze.', "error");
         const modeMapping = {
             basic: "basic",
-            tone: "tone",
+            tone: "style",
             structural: "structural",
             clarity: "clarity",
             impact: "impact"
+        };
+
+        // Label hiển thị cho từng mode
+        const modeLabels = {
+            basic:      { icon: "ph-fill ph-check-square-offset", title: "Văn bản đã sửa lỗi",          desc: "Ngữ pháp & chính tả đã được chỉnh" },
+            tone:       { icon: "ph-fill ph-mask-happy",          title: "Văn bản theo giọng điệu mới",  desc: "Đã điều chỉnh tone & nhịp điệu" },
+            structural: { icon: "ph-fill ph-tree-structure",      title: "Văn bản đã tái cấu trúc",      desc: "Câu và đoạn văn đã được sắp xếp lại" },
+            clarity:    { icon: "ph-fill ph-scissors",            title: "Văn bản đã cắt gọn",           desc: "Đã loại bỏ từ thừa & câu bị động" },
+            impact:     { icon: "ph-fill ph-lightning",           title: "Văn bản với từ vựng mạnh hơn", desc: "Từ yếu đã được nâng cấp" }
         };
 
         let backendMode = modeMapping[activeMode] || "basic";
@@ -1426,7 +1666,9 @@
             ].filter(e => e.offset !== undefined && e.length !== undefined)
              .sort((a,b) => a.offset - b.offset);
 
-            if (allErrors.length) {
+            if (backendMode !== 'basic' && payload.corrected_text && payload.corrected_text !== baseText) {
+                document.getElementById("correctedText").innerHTML = payload.corrected_text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+            } else if (allErrors.length) {
                 let result = [], last = 0;
                 allErrors.forEach((err, idx) => {
                     if (err.offset < last) return; // skip overlapping
@@ -1438,9 +1680,10 @@
                     last = err.offset + err.length;
                 });
                 result.push(baseText.substring(last));
-                document.getElementById("correctedText").innerHTML = result.join("");
+                document.getElementById("correctedText").innerHTML = result.join("").replace(/\n/g, '<br>');
             } else {
-                document.getElementById("correctedText").textContent = baseText;
+                let textToDisplay = payload.corrected_text || baseText;
+                document.getElementById("correctedText").innerHTML = textToDisplay.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
             }
 
             // Hiện Fix All nếu có lỗi có suggestions
@@ -1470,42 +1713,80 @@
             document.getElementById("results").hidden = false;
             hideAnalyzePopup();
             attachHighlightEvents();
+
+            // ── Cập nhật tiêu đề panel kết quả theo mode ──
+            const lbl = modeLabels[activeMode] || modeLabels.basic;
+            const resultCardTitle = document.querySelector("#results .result-card:first-child h4");
+            if (resultCardTitle) {
+                resultCardTitle.innerHTML = `
+                    <i class="${lbl.icon}"></i>
+                    <span>${lbl.title}</span>
+                    <small style="font-size:12px; font-weight:400; color:var(--text-muted); margin-left:4px;">— ${lbl.desc}</small>
+                    <button id="copyBtn" onclick="copyResult()" style="margin-left:auto; display:flex; align-items:center; gap:6px; background:var(--surface-elevated); border:1px solid var(--border-medium); color:var(--text-secondary); border-radius:20px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer;">
+                        <i class="ph ph-copy" style="font-size:16px;"></i> <span id="copyBtnText">Sao chép</span>
+                    </button>`;
+            }
+
+            // ── Cập nhật tiêu đề phần đề xuất theo mode ──
+            const errorTitles = {
+                basic:      "⚠️ Lỗi ngữ pháp & chính tả",
+                tone:       "🎭 Điểm không khớp giọng điệu",
+                structural: "🔗 Vấn đề cấu trúc & mạch lạc",
+                clarity:    "✂️ Từ thừa & câu bị động",
+                impact:     "⚡ Từ yếu cần nâng cấp"
+            };
+            const errHeader = document.querySelector("#results .result-card:last-of-type h4");
+            if (errHeader && !errHeader.closest("#aiPanel")) {
+                errHeader.innerHTML = `<i class="ph-fill ph-warning-circle" style="color:#f59e0b;"></i> ${errorTitles[activeMode] || errorTitles.basic}`;
+            }
             
             // Build results HTML for popup
             // Lấy HTML đã build với interactive highlight để dùng trong popup
             const builtHL = document.getElementById("correctedText").innerHTML;
 
-            let resultsHtml = `
-                <div class="result-card" style="border: 2px solid var(--accent-primary);">
-                    <h4 data-i18n="optimized-title"><i class="ph-fill ph-sparkle" style="color: var(--accent-primary);"></i> ✨ Optimized Text</h4>
-                    <div style="font-size:15px; line-height:1.8;">${builtHL}</div>
-                </div>
-                <div class="result-card">
-                    <h4 data-i18n="highlights-title"><i class="ph-fill ph-highlighter-circle" style="color: #fbbf24;"></i> 🖍️ Sentence Highlights</h4>
-                    <div>${stats.sentence_highlights ? stats.sentence_highlights.map(s => `<span class="highlight-${s.category}">${s.text}</span> `).join("") : `<p style='color:var(--text-muted)'>${window.t ? t('no-highlights','No sentence highlights available.') : 'No sentence highlights available.'}</p>`}</div>
-                </div>
-                <div class="result-card">
-                    <h4 data-i18n="stats-title"><i class="ph-fill ph-bar-chart" style="color: #10b981;"></i> 📊 Writing Statistics</h4>
-                    <div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-                            <div><span style="color:var(--text-muted)">${window.t ? t('words-label','Words:') : 'Words:'}</span> <strong>${stats.word_count || 0}</strong></div>
-                            <div><span style="color:var(--text-muted)">${window.t ? t('chars-label','Characters:') : 'Characters:'}</span> <strong>${stats.char_count || 0}</strong></div>
-                            <div><span style="color:var(--text-muted)">${window.t ? t('reading-label','Reading:') : 'Reading:'}</span> <strong>${stats.reading_time_mins || 0} ${window.t ? t('minutes','mins') : 'mins'}</strong></div>
-                            <div><span style="color:var(--text-muted)">${window.t ? t('speaking-label','Speaking:') : 'Speaking:'}</span> <strong>${stats.speaking_time_mins || 0} ${window.t ? t('minutes','mins') : 'mins'}</strong></div>
-                            <div style="grid-column: span 2;"><span style="color:var(--text-muted)">${window.t ? t('readability-label','Readability (Flesch):') : 'Readability (Flesch):'}</span> <strong>${stats.reading_ease || 0}</strong></div>
-                        </div>
-                        ${stats.top_keywords ? `<div style="margin-top: 20px;"><strong style='display:block; margin-bottom:8px;'>${window.t ? t('top-keywords','Top keywords:') : 'Top keywords:'}</strong>${stats.top_keywords.map(k => `<span class="pill">${k.word} (${k.count})</span>`).join("")}</div>` : ''}
+            let resultsHtml = "";
+            if (backendMode !== 'basic' && payload.ai_analysis) {
+                resultsHtml = `
+                    <div class="result-card" style="border: 2px solid var(--accent-primary); background: var(--card-bg);">
+                        <h4 data-i18n="ai-optimized-title" style="margin-bottom: 20px; font-size: 20px; color: var(--accent-primary);">
+                            <i class="ph-fill ph-brain"></i> 🤖 Kết Quả Phân Tích Chuyên Sâu
+                        </h4>
+                        <div style="font-size:15px; line-height:1.8;">${renderAIAnalysis(payload.ai_analysis)}</div>
                     </div>
-                </div>
-                <div class="result-card">
-                    <h4 data-i18n="errors-title"><i class="ph-fill ph-warning-circle" style="color: #f59e0b;"></i> ⚠️ Flags & Errors</h4>
-                    <ul style="margin:0; padding-left:0;">${(grammarItems || styleItems) ? grammarItems+styleItems : `<li style='list-style:none; color:var(--text-muted);'><i class='ph-fill ph-check-circle' style='color:#10b981;'></i> ${window.t ? t('no-errors','Great! No major issues found.') : 'Great! No major issues found.'}</li>`}</ul>
-                </div>
-                ${payload.ai_analysis ? `<div class="result-card" style="background: var(--accent-soft); border-color: var(--accent-primary);">
-                    <h4 data-i18n="ai-panel-title"><i class="ph-fill ph-brain"></i> 🤖 Deep AI Analysis</h4>
-                    <div>${renderAIAnalysis(payload.ai_analysis)}</div>
-                </div>` : ''}
-            `;
+                `;
+            } else {
+                resultsHtml = `
+                    <div class="result-card" style="border: 2px solid var(--accent-primary);">
+                        <h4 data-i18n="optimized-title"><i class="ph-fill ph-sparkle" style="color: var(--accent-primary);"></i> ✨ Optimized Text</h4>
+                        <div style="font-size:15px; line-height:1.8;">${builtHL}</div>
+                    </div>
+                    <div class="result-card">
+                        <h4 data-i18n="highlights-title"><i class="ph-fill ph-highlighter-circle" style="color: #fbbf24;"></i> 🖍️ Sentence Highlights</h4>
+                        <div>${stats.sentence_highlights ? stats.sentence_highlights.map(s => `<span class="highlight-${s.category}">${s.text}</span> `).join("") : `<p style='color:var(--text-muted)'>${window.t ? t('no-highlights','No sentence highlights available.') : 'No sentence highlights available.'}</p>`}</div>
+                    </div>
+                    <div class="result-card">
+                        <h4 data-i18n="stats-title"><i class="ph-fill ph-bar-chart" style="color: #10b981;"></i> 📊 Writing Statistics</h4>
+                        <div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                                <div><span style="color:var(--text-muted)">${window.t ? t('words-label','Words:') : 'Words:'}</span> <strong>${stats.word_count || 0}</strong></div>
+                                <div><span style="color:var(--text-muted)">${window.t ? t('chars-label','Characters:') : 'Characters:'}</span> <strong>${stats.char_count || 0}</strong></div>
+                                <div><span style="color:var(--text-muted)">${window.t ? t('reading-label','Reading:') : 'Reading:'}</span> <strong>${stats.reading_time_mins || 0} ${window.t ? t('minutes','mins') : 'mins'}</strong></div>
+                                <div><span style="color:var(--text-muted)">${window.t ? t('speaking-label','Speaking:') : 'Speaking:'}</span> <strong>${stats.speaking_time_mins || 0} ${window.t ? t('minutes','mins') : 'mins'}</strong></div>
+                                <div style="grid-column: span 2;"><span style="color:var(--text-muted)">${window.t ? t('readability-label','Readability (Flesch):') : 'Readability (Flesch):'}</span> <strong>${stats.reading_ease || 0}</strong></div>
+                            </div>
+                            ${stats.top_keywords ? `<div style="margin-top: 20px;"><strong style='display:block; margin-bottom:8px;'>${window.t ? t('top-keywords','Top keywords:') : 'Top keywords:'}</strong>${stats.top_keywords.map(k => `<span class="pill">${k.word} (${k.count})</span>`).join("")}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <h4 data-i18n="errors-title"><i class="ph-fill ph-warning-circle" style="color: #f59e0b;"></i> ⚠️ Flags & Errors</h4>
+                        <ul style="margin:0; padding-left:0;">${(grammarItems || styleItems) ? grammarItems+styleItems : `<li style='list-style:none; color:var(--text-muted);'><i class='ph-fill ph-check-circle' style='color:#10b981;'></i> ${window.t ? t('no-errors','Great! No major issues found.') : 'Great! No major issues found.'}</li>`}</ul>
+                    </div>
+                    ${payload.ai_analysis ? `<div class="result-card" style="background: var(--accent-soft); border-color: var(--accent-primary);">
+                        <h4 data-i18n="ai-panel-title"><i class="ph-fill ph-brain"></i> 🤖 Deep AI Analysis</h4>
+                        <div>${renderAIAnalysis(payload.ai_analysis)}</div>
+                    </div>` : ''}
+                `;
+            }
             
             showResultsPopup(resultsHtml);
             showStatus(window.t ? t('analysis-complete','Analysis complete ✓') : 'Analysis complete ✓', "success");
@@ -1656,8 +1937,9 @@
             const sc    = score >= 80 ? "high" : score >= 50 ? "medium" : "low";
             const date  = item.created_at ? new Date(item.created_at).toLocaleString("vi-VN") : "—";
             const lang  = item.lang || item.result?.lang || "en-US";
+            const id    = item._id || "";
             return `
-            <div class="h-item">
+            <div class="h-item" id="h-item-${id}">
                 <div class="h-item-top">
                     <span class="h-date"><i class="ph ph-calendar-blank"></i> ${date}</span>
                     <span class="h-score ${sc}">Score: ${score}</span>
@@ -1667,7 +1949,8 @@
                     <span class="h-pill lang">${lang}</span>
                     ${s.grammar ? `<span class="h-pill grammar"><i class="ph-fill ph-warning"></i> ${s.grammar} lỗi</span>` : ""}
                     ${s.style   ? `<span class="h-pill style"><i class="ph-fill ph-info"></i> ${s.style} style</span>` : ""}
-                    <button class="h-reuse-btn" onclick="reuseText(${idx})"><i class="ph ph-arrow-counter-clockwise"></i> Reuse </button>
+                    <button class="h-reuse-btn" onclick="reuseText(${idx})"><i class="ph ph-arrow-counter-clockwise"></i> Reuse</button>
+                    <button class="h-delete-btn" onclick="deleteHistoryItem('${id}', this)" title="Xóa mục này"><i class="ph ph-trash"></i></button>
                 </div>
             </div>`;
         }).join("");
@@ -1684,9 +1967,234 @@
         closeHistory();
         ta.focus();
     };
+
+    window.deleteHistoryItem = async function(id, btn) {
+        if (!id) return;
+        if (!confirm("Xóa mục lịch sử này?")) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner"></i>';
+        try {
+            const res = await fetch(`${BASE_URL}/history/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": "Bearer " + (token || "") }
+            });
+            if (res.ok) {
+                const el = document.getElementById(`h-item-${id}`);
+                if (el) { el.style.opacity = "0"; el.style.transform = "translateX(20px)"; el.style.transition = "all 0.3s"; setTimeout(() => el.remove(), 300); }
+                drawerHistory = drawerHistory.filter(i => i._id !== id);
+                renderDrawerStats(drawerHistory);
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-trash"></i>';
+                alert("Xóa thất bại. Thử lại.");
+            }
+        } catch(e) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-trash"></i>';
+        }
+    };
+
+    window.deleteAllHistory = async function() {
+        if (!drawerHistory.length) return alert("Không có lịch sử để xóa.");
+        if (!confirm(`Xóa toàn bộ ${drawerHistory.length} mục lịch sử? Hành động này không thể hoàn tác.`)) return;
+        try {
+            const res = await fetch(`${BASE_URL}/history/all`, {
+                method: "DELETE",
+                headers: { "Authorization": "Bearer " + (token || "") }
+            });
+            if (res.ok) {
+                drawerHistory = [];
+                renderDrawerStats([]);
+                renderDrawerList([]);
+            } else {
+                alert("Xóa thất bại. Thử lại.");
+            }
+        } catch(e) {
+            alert("Không kết nối được server.");
+        }
+    };
+
+    /* ══════════════════════════════
+       FLOATING CHAT
+    ══════════════════════════════ */
+    let chatOpen = false;
+    let chatHistory = [];   // [{role:'user'|'ai', content:'...'}]
+    let chatUnread = 0;
+
+    function toggleChat() {
+        chatOpen = !chatOpen;
+        const win = document.getElementById("chatWindow");
+        const icon = document.getElementById("chatBubbleIcon");
+        win.classList.toggle("open", chatOpen);
+        icon.className = chatOpen ? "ph-fill ph-x" : "ph-fill ph-chat-circle-dots";
+        if (chatOpen) {
+            // reset unread badge
+            chatUnread = 0;
+            document.getElementById("chatBadge").classList.remove("visible");
+            if (chatHistory.length === 0) showWelcomeMsg();
+            setTimeout(() => document.getElementById("chatInput").focus(), 250);
+        }
+    }
+
+    function showWelcomeMsg() {
+        appendChatMsg("ai", "Xin chào! Tôi là Lumina AI 👋\nHãy hỏi tôi về ngữ pháp, cách viết, hoặc paste văn bản để phân tích nhé!");
+    }
+
+    function appendChatMsg(role, text) {
+        const box = document.getElementById("chatMessages");
+        const div = document.createElement("div");
+        div.className = `chat-msg ${role}`;
+        const avatarHTML = role === "ai"
+            ? `<div class="chat-msg-avatar"><i class="ph-fill ph-sparkle"></i></div>`
+            : `<div class="chat-msg-avatar"><i class="ph ph-user"></i></div>`;
+        // Convert line breaks & basic markdown bold
+        const formatted = text
+            .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+            .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+            .replace(/\n/g,"<br>");
+        div.innerHTML = `${avatarHTML}<div class="chat-msg-bubble">${formatted}</div>`;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+        chatHistory.push({ role: role === "ai" ? "assistant" : "user", content: text });
+        // Hide quick btns after first exchange
+        if (chatHistory.length >= 2) {
+            const qb = document.getElementById("chatQuickBtns");
+            if (qb) qb.style.display = "none";
+        }
+    }
+
+    function showTyping() {
+        const box = document.getElementById("chatMessages");
+        const div = document.createElement("div");
+        div.className = "chat-msg ai";
+        div.id = "chatTyping";
+        div.innerHTML = `<div class="chat-msg-avatar"><i class="ph-fill ph-sparkle"></i></div>
+            <div class="chat-typing"><span></span><span></span><span></span></div>`;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function removeTyping() {
+        const t = document.getElementById("chatTyping");
+        if (t) t.remove();
+    }
+
+    function setStatus(text, color = "") {
+        const el = document.getElementById("chatStatus");
+        el.textContent = text;
+        el.style.color = color ? color : "";
+    }
+
+    async function sendChatMessage() {
+        const input = document.getElementById("chatInput");
+        const msg = input.value.trim();
+        if (!msg) return;
+        const sendBtn = document.getElementById("chatSendBtn");
+
+        input.value = "";
+        input.style.height = "38px";
+        sendBtn.disabled = true;
+        setStatus("● Đang trả lời...", "#fbbf24");
+
+        appendChatMsg("user", msg);
+
+        // If user asks to analyze current text, inject it
+        let finalMsg = msg;
+        const ta = document.getElementById("inputText");
+        if (/phân tích|analyze|văn bản.*vừa|text.*vừa/i.test(msg) && ta && ta.value.trim()) {
+            finalMsg = msg + "\n\nVăn bản đang nhập:\n" + ta.value.trim().substring(0, 800);
+        }
+
+        showTyping();
+        try {
+            const res = await fetch(BASE_URL + "/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (token || "") },
+                body: JSON.stringify({ message: finalMsg, history: chatHistory.slice(-10) })
+            });
+            removeTyping();
+            const data = await res.json();
+            if (data.reply) {
+                appendChatMsg("ai", data.reply);
+                if (!chatOpen) {
+                    chatUnread++;
+                    const badge = document.getElementById("chatBadge");
+                    badge.textContent = chatUnread;
+                    badge.classList.add("visible");
+                }
+                setStatus("● Sẵn sàng hỗ trợ");
+            } else {
+                appendChatMsg("ai", "⚠️ " + (data.error || "Có lỗi xảy ra, thử lại nhé!"));
+                setStatus("● Lỗi", "#ef4444");
+            }
+        } catch(e) {
+            removeTyping();
+            appendChatMsg("ai", "⚠️ Không kết nối được server. Kiểm tra backend đang chạy không.");
+            setStatus("● Offline", "#ef4444");
+        }
+        sendBtn.disabled = false;
+        input.focus();
+    }
+
+    window.sendQuick = function(msg) {
+        document.getElementById("chatInput").value = msg;
+        sendChatMessage();
+    };
+
+    window.clearChat = function() {
+        chatHistory = [];
+        document.getElementById("chatMessages").innerHTML = "";
+        const qb = document.getElementById("chatQuickBtns");
+        if (qb) qb.style.display = "flex";
+        setStatus("● Sẵn sàng hỗ trợ");
+        showWelcomeMsg();
+    };
+
+    function handleChatKey(e) {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+    }
+
+    function autoResizeChat(el) {
+        el.style.height = "38px";
+        el.style.height = Math.min(el.scrollHeight, 100) + "px";
+    }
+
+    window.toggleChat = toggleChat;
 </script>
 <script src="config/config.js"></script>
 <script src="assets/js/translations.js"></script>
+
+<!-- Floating Chat Bubble -->
+<button class="chat-bubble-btn" onclick="toggleChat()" title="Chat với AI" id="chatBubbleBtn">
+    <i class="ph-fill ph-chat-circle-dots" id="chatBubbleIcon"></i>
+    <span class="chat-badge" id="chatBadge"></span>
+</button>
+
+<!-- Chat Window -->
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <div class="chat-header-avatar"><i class="ph-fill ph-sparkle"></i></div>
+        <div class="chat-header-info">
+            <strong>Lumina AI Assistant</strong>
+            <span id="chatStatus">● Sẵn sàng hỗ trợ</span>
+        </div>
+        <button class="chat-clear-btn" onclick="clearChat()" title="Xóa hội thoại"><i class="ph ph-arrow-counter-clockwise"></i></button>
+        <button class="chat-header-close" onclick="toggleChat()"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-quick-btns" id="chatQuickBtns">
+        <button class="chat-quick-btn" onclick="sendQuick('Giải thích lỗi ngữ pháp phổ biến')">📚 Lỗi ngữ pháp</button>
+        <button class="chat-quick-btn" onclick="sendQuick('Cách viết email chuyên nghiệp')">✉️ Email pro</button>
+        <button class="chat-quick-btn" onclick="sendQuick('Phân tích văn bản tôi vừa nhập')">🔍 Phân tích text</button>
+    </div>
+    <div class="chat-input-area">
+        <textarea id="chatInput" placeholder="Hỏi về văn bản, ngữ pháp..." rows="1"
+            onkeydown="handleChatKey(event)" oninput="autoResizeChat(this)"></textarea>
+        <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
+            <i class="ph-fill ph-paper-plane-tilt"></i>
+        </button>
+    </div>
+</div>
 
 <!-- Bottom Nav -->
 <nav class="bottom-nav">

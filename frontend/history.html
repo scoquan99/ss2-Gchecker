@@ -292,6 +292,36 @@
         }
         .expand-btn:hover { background: var(--accent-soft); color: var(--accent-primary); border-color: var(--accent-primary); }
 
+        .delete-item-btn {
+            background: none;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .delete-item-btn:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+
+        .clear-all-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .clear-all-btn:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+
         /* Detail expand */
         .history-detail {
             display: none;
@@ -447,6 +477,9 @@
             <option value="medium">Trung bình (50-79)</option>
             <option value="low">Thấp (&lt;50)</option>
         </select>
+        <button class="clear-all-btn" onclick="deleteAllHistory()" title="Xóa toàn bộ lịch sử">
+            <i class="ph ph-trash"></i> Xóa tất cả
+        </button>
     </div>
 
     <!-- History list -->
@@ -578,11 +611,12 @@
             const corrected= item.result?.corrected_text || text;
             const grammarErrors = item.result?.grammar_errors || [];
             const styleErrors   = item.result?.style_errors   || [];
+            const id       = item._id || "";
 
             const scoreClass = score >= 80 ? "score-high" : score >= 50 ? "score-medium" : "score-low";
 
             return `
-            <div class="history-item" id="item-${idx}">
+            <div class="history-item" id="hist-${id}">
                 <div class="history-item-header">
                     <div class="history-meta">
                         <span class="history-date"><i class="ph ph-calendar-blank"></i> ${date}</span>
@@ -600,6 +634,9 @@
                     ${!grammar && !style && !spelling ? `<span style="font-size:13px; color:#10b981;"><i class="ph-fill ph-check-circle"></i> Không có lỗi</span>` : ""}
                     <button class="expand-btn" onclick="toggleDetail(${idx})">
                         Chi tiết <i class="ph ph-caret-down" id="caret-${idx}"></i>
+                    </button>
+                    <button class="delete-item-btn" onclick="deleteHistoryItem('${id}', this)" title="Xóa mục này">
+                        <i class="ph ph-trash"></i>
                     </button>
                 </div>
 
@@ -649,6 +686,61 @@
         const caret  = document.getElementById(`caret-${idx}`);
         detail.classList.toggle("open");
         caret.style.transform = detail.classList.contains("open") ? "rotate(180deg)" : "rotate(0deg)";
+    }
+
+    /* ── Delete single item ── */
+    async function deleteHistoryItem(id, btn) {
+        if (!id) return;
+        if (!confirm("Xóa mục lịch sử này?")) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner"></i>';
+        try {
+            const res = await fetch(BASE_URL + "/history/" + id, {
+                method: "DELETE",
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (res.ok) {
+                const el = document.getElementById("hist-" + id);
+                if (el) {
+                    el.style.opacity = "0";
+                    el.style.transform = "translateX(30px)";
+                    el.style.transition = "all 0.3s ease";
+                    setTimeout(() => {
+                        el.remove();
+                        allHistory = allHistory.filter(i => i._id !== id);
+                        renderStats(allHistory);
+                    }, 300);
+                }
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-trash"></i>';
+                alert("Xóa thất bại. Thử lại.");
+            }
+        } catch(e) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-trash"></i>';
+        }
+    }
+
+    /* ── Delete all history ── */
+    async function deleteAllHistory() {
+        if (!allHistory.length) return alert("Không có lịch sử để xóa.");
+        if (!confirm(`Xóa toàn bộ ${allHistory.length} mục lịch sử? Hành động này không thể hoàn tác.`)) return;
+        try {
+            const res = await fetch(BASE_URL + "/history/all", {
+                method: "DELETE",
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (res.ok) {
+                allHistory = [];
+                renderStats([]);
+                renderHistory([]);
+            } else {
+                alert("Xóa thất bại. Thử lại.");
+            }
+        } catch(e) {
+            alert("Không kết nối được server.");
+        }
     }
 
     /* ── Copy text ── */
