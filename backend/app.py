@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from routes.check_routes import check_routes
 from routes.auth_routes import auth_routes
+from routes.chat_routes import chat_routes
 from dotenv import load_dotenv
 import os
 import nltk_download
@@ -24,7 +25,8 @@ CORS(app,
 
 app.register_blueprint(check_routes)
 app.register_blueprint(auth_routes)
+app.register_blueprint(chat_routes)
 
 if __name__ == "__main__":
-    print("🚀 Server running on http://localhost:5000")
+    print("Server running on http://localhost:5000")
     app.run(debug=True, port=5000)

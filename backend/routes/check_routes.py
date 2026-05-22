@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models.spell_model import SpellChecker
-from database.history_dao import save_history, get_history
+from database.history_dao import save_history, get_history, delete_history_item, delete_all_history
 from datetime import datetime
 from middleware.jwt_middleware import jwt_required
 import jwt
@@ -34,7 +34,7 @@ def check():
     mode = data.get("mode", "basic")
     tone = data.get("tone", "Professional")
     
-    print(f"🔍 DEBUG - Received mode: {mode}, tone: {tone}")
+    print(f"DEBUG - Received mode: {mode}, tone: {tone}")
 
     if text.strip() == "":
         return jsonify({"error": "Text cannot be empty"}), 400
@@ -82,6 +82,24 @@ def history():
     limit = request.args.get("limit", 20, type=int)
     items = get_history(limit=limit, username=username)
     return jsonify({"history": items})
+
+
+@check_routes.route("/history/<item_id>", methods=["DELETE"])
+@jwt_required
+def delete_history_by_id(item_id):
+    username = get_username_from_token(request)
+    success = delete_history_item(item_id, username=username)
+    if success:
+        return jsonify({"message": "Deleted successfully"})
+    return jsonify({"error": "Item not found or unauthorized"}), 404
+
+
+@check_routes.route("/history/all", methods=["DELETE"])
+@jwt_required
+def delete_all_history_route():
+    username = get_username_from_token(request)
+    count = delete_all_history(username=username)
+    return jsonify({"message": f"Deleted {count} items"})
 
 
 @check_routes.route("/thesaurus", methods=["POST"])
@@ -163,26 +181,20 @@ Văn bản: {text[:6000]}
 """
 
             res = client.models.generate_content(
-                model="gemini-2.5-flash",   # hoặc gemini-2.0-flash
+                model="gemini-2.0-flash",   # hoặc gemini-2.0-flash
                 contents=prompt
             )
             
             raw = res.text.strip().strip("```json").strip("```").strip()
             result = json.loads(raw)
-            print(f"✅ AI Detect thành công với key {i+1}")
+            print(f"AI Detect thanh cong voi key {i+1}")
             return jsonify(result)
 
         except Exception as e:
             error_str = str(e).lower()
-            print(f"❌ Key {i+1} lỗi: {error_str[:100]}")
-            
-            if "quota" in error_str or "429" in error_str:
-                continue  # Thử key tiếp theo
-            else:
-                break  # Lỗi khác thì dừng
+            print(f"Key {i+1} loi: {error_str[:100]}")
+            last_error = str(e)
+            continue  # Thử key tiếp theo
 
     # Nếu tất cả key đều lỗi
-    return jsonify({
-        "ai_probability": 50,
-        "reasoning": "Tất cả API keys đều đang hết quota. Vui lòng thử lại sau hoặc thêm key mới."
-    })
+    return jsonify({"error": f"All API keys failed. Last error: {last_error}"}), 500
