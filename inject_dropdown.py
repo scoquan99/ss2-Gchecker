@@ -281,6 +281,10 @@ def process_file():
             const display = document.getElementById('currentLangDisplay');
             if(lang === 'vi') {
                 display.textContent = "Tiếng Việt";
+            } else if (lang === 'fr') {
+                display.textContent = "Français";
+            } else if (lang === 'es') {
+                display.textContent = "Español";
             } else {
                 display.textContent = "English";
             }

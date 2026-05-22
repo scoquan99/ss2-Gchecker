@@ -14,6 +14,8 @@ def process_html_file(file_path):
                     <select class="lang-switcher" id="langSwitcher" onchange="applyLanguage(this.value)">
                         <option value="en" data-i18n="lang-en">English</option>
                         <option value="vi" data-i18n="lang-vi">Tiếng Việt</option>
+                        <option value="fr" data-i18n="lang-fr">Français</option>
+                        <option value="es" data-i18n="lang-es">Español</option>
                     </select>
                 </div>"""
 
