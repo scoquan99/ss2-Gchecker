@@ -1,41 +1,62 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING, DESCENDING
+from pymongo.errors import PyMongoError
 from datetime import datetime
 from config import MONGO_URI, DB_NAME
 
-client = MongoClient(MONGO_URI)
-db = client[DB_NAME]
-history_collection = db["history"]
+try:
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+    db = client[DB_NAME]
+    history_collection = db["history"]
+    # Compound index cho hot query: filter username + sort created_at desc
+    history_collection.create_index(
+        [("username", ASCENDING), ("created_at", DESCENDING)],
+        name="hist_user_created"
+    )
+except PyMongoError as e:
+    import sys
+    print(f"[FATAL] Cannot connect to MongoDB: {e}", file=sys.stderr)
+    history_collection = None
 
 
 def save_history(text, result, lang="en-US", username=None):
+    # DB-2 fix: chỉ lưu summary nhỏ gọn, không lưu toàn bộ blob
+    summary = result.get("summary", {}) if isinstance(result, dict) else {}
     data = {
-        "text":       text,
-        "result":     result,
+        "text":       text[:2000],   # giới hạn text lưu
         "lang":       lang,
-        "username":   username,   # luu username de filter
+        "username":   username,
+        "result": {
+            "summary":        summary,
+            "corrected_text": (result.get("corrected_text") or "")[:2000],
+        },
         "created_at": datetime.utcnow()
     }
-    history_collection.insert_one(data)
+    try:
+        history_collection.insert_one(data)
+    except PyMongoError as e:
+        print(f"[history_dao] save error: {e}")
 
 
 def get_history(limit=20, username=None):
     query = {}
     if username:
-        query["username"] = username   # moi user chi thay history cua minh
-
-    history = list(
-        history_collection
-        .find(query)
-        .sort("created_at", -1)
-        .limit(limit)
-    )
-    for item in history:
-        item["_id"] = str(item["_id"])
-    return history
+        query["username"] = username
+    try:
+        history = list(
+            history_collection
+            .find(query)
+            .sort("created_at", -1)
+            .limit(limit)
+        )
+        for item in history:
+            item["_id"] = str(item["_id"])
+        return history
+    except PyMongoError as e:
+        print(f"[history_dao] get error: {e}")
+        return []
 
 
 def delete_history_item(item_id, username=None):
-    """Xoa mot muc lich su theo _id, chi xoa neu thuoc ve username."""
     from bson import ObjectId
     try:
         query = {"_id": ObjectId(item_id)}
@@ -48,9 +69,11 @@ def delete_history_item(item_id, username=None):
 
 
 def delete_all_history(username=None):
-    """Xoa toan bo lich su cua mot user."""
     query = {}
     if username:
         query["username"] = username
-    result = history_collection.delete_many(query)
-    return result.deleted_count
+    try:
+        result = history_collection.delete_many(query)
+        return result.deleted_count
+    except PyMongoError:
+        return 0

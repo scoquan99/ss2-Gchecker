@@ -28,5 +28,12 @@ app.register_blueprint(auth_routes)
 app.register_blueprint(chat_routes)
 
 if __name__ == "__main__":
-    print("Server running on http://localhost:5000")
-    app.run(debug=True, port=5000)
+    debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    port  = int(os.getenv("PORT", 5000))
+    print(f"Server running on http://localhost:{port} (debug={debug})")
+    app.run(debug=debug, port=port)
+
+@app.errorhandler(Exception)
+def _json_500(e):
+    app.logger.exception(e)
+    return jsonify({"error": "Internal server error"}), 500

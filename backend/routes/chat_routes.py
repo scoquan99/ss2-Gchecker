@@ -6,12 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 chat_routes = Blueprint("chat_routes", __name__)
 
-GEMINI_KEYS = [
-    os.getenv("GEMINI_API_KEY_1"),
-    os.getenv("GEMINI_API_KEY_2"),
-    os.getenv("GEMINI_API_KEY_3"),
-]
-GEMINI_KEYS = [k for k in GEMINI_KEYS if k and len(k.strip()) > 15]
+from config import get_gemini_keys
+
+GEMINI_KEYS = get_gemini_keys()
 
 SYSTEM_PROMPT = """Bạn là trợ lý AI chuyên về viết lách và ngôn ngữ của ứng dụng "Lumina Text Studio".
 Bạn giúp người dùng:

@@ -8,12 +8,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-api_keys = [
-    os.getenv("GEMINI_API_KEY_1"),
-    os.getenv("GEMINI_API_KEY_2"),
-    os.getenv("GEMINI_API_KEY_3")
-]
-api_keys = [k for k in api_keys if k and len(k.strip()) > 15]
+from config import get_gemini_keys
+
+api_keys = get_gemini_keys()
 
 # ─────────────────────────────────────────────
 #  PROMPT riêng biệt cho từng mode
@@ -105,13 +102,8 @@ class SpellChecker:
         self._preload()
 
     def _preload(self):
-        def load():
-            for lang in ["en-US", "fr", "de", "es"]:
-                print(f"[SpellChecker] Preloading {lang}...")
-                self._get_tool(lang)
-            print("[SpellChecker] All languages ready!")
-        t = threading.Thread(target=load, daemon=True)
-        t.start()
+        # Chỉ preload en-US — ngôn ngữ khác lazy load khi cần
+        threading.Thread(target=lambda: self._get_tool("en-US"), daemon=True).start()
 
     def _get_tool(self, lang):
         if lang not in self._tools:
@@ -187,7 +179,7 @@ Chỉ trả về JSON:
         for i, api_key in enumerate(api_keys):
             try:
                 client = genai.Client(api_key=api_key)
-                response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+                response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
                 raw = response.text.strip().strip("```json").strip("```").strip()
                 data = json.loads(raw)
                 return {
@@ -224,7 +216,7 @@ Chỉ trả về JSON:
         for i, api_key in enumerate(api_keys):
             try:
                 client = genai.Client(api_key=api_key)
-                response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+                response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
                 raw = response.text.strip().strip("```json").strip("```").strip()
                 return json.loads(raw)
             except Exception as e:

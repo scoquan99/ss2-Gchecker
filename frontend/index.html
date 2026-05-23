@@ -1090,6 +1090,74 @@
             display: flex; align-items: center;
         }
         .chat-clear-btn:hover { color: white; }
+
+        /* ── SUMMARIZE / PARAPHRASE / DIFF tools ── */
+        .tool-tabs { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+        .tool-tab {
+            padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            border: 1px solid var(--border-medium); background: none;
+            color: var(--text-muted); cursor: pointer;
+        }
+        .tool-tab.active { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
+        .tool-tab:hover:not(.active) { background: var(--accent-soft); color: var(--accent-primary); }
+
+        .tool-result-box {
+            background: var(--surface-elevated); border: 1px solid var(--border-light);
+            border-radius: var(--radius-md); padding: 16px; margin-top: 14px;
+            font-size: 14px; line-height: 1.7; color: var(--text-primary);
+            white-space: pre-wrap; word-break: break-word;
+        }
+        .tool-result-box.hidden { display: none; }
+
+        .tool-stat-row {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;
+        }
+        .tool-stat-chip {
+            background: var(--accent-soft); color: var(--accent-primary);
+            border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 700;
+        }
+        .tool-stat-chip.red   { background: rgba(239,68,68,0.1);  color: #ef4444; }
+        .tool-stat-chip.green { background: rgba(16,185,129,0.1); color: #10b981; }
+        .tool-stat-chip.amber { background: rgba(245,158,11,0.1); color: #f59e0b; }
+
+        .paraphrase-version {
+            border: 1px solid var(--border-light); border-radius: var(--radius-md);
+            padding: 14px 16px; margin-bottom: 10px; position: relative;
+        }
+        .paraphrase-version-label {
+            font-size: 11px; font-weight: 700; color: var(--accent-primary);
+            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+        }
+        .paraphrase-use-btn {
+            position: absolute; top: 12px; right: 12px;
+            background: var(--accent-soft); color: var(--accent-primary);
+            border: 1px solid rgba(59,130,246,0.25); border-radius: 20px;
+            padding: 4px 12px; font-size: 11px; font-weight: 700; cursor: pointer;
+        }
+        .paraphrase-use-btn:hover { background: var(--accent-primary); color: white; }
+
+        /* diff view */
+        .diff-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+        @media (max-width: 600px) { .diff-container { grid-template-columns: 1fr; } }
+        .diff-panel { border: 1px solid var(--border-light); border-radius: var(--radius-md); overflow: hidden; }
+        .diff-panel-header {
+            padding: 8px 14px; font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .diff-panel-header.before { background: rgba(239,68,68,0.08); color: #ef4444; }
+        .diff-panel-header.after  { background: rgba(16,185,129,0.08); color: #10b981; }
+        .diff-panel-body { padding: 14px; font-size: 13px; line-height: 1.8; }
+        mark.diff-removed { background: rgba(239,68,68,0.18); color: #b91c1c; border-radius: 3px; padding: 1px 3px; text-decoration: line-through; }
+        mark.diff-added   { background: rgba(16,185,129,0.18); color: #065f46; border-radius: 3px; padding: 1px 3px; }
+        .diff-changes-list { margin-top: 14px; max-height: 200px; overflow-y: auto; }
+        .diff-change-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 4px; }
+        .diff-change-item.replace { background: rgba(245,158,11,0.08); }
+        .diff-change-item.delete  { background: rgba(239,68,68,0.08); }
+        .diff-change-item.insert  { background: rgba(16,185,129,0.08); }
+        .diff-change-badge { border-radius: 20px; padding: 2px 8px; font-weight: 700; font-size: 10px; text-transform: uppercase; flex-shrink: 0; }
+        .diff-change-badge.replace { background: rgba(245,158,11,0.2); color: #d97706; }
+        .diff-change-badge.delete  { background: rgba(239,68,68,0.2);  color: #ef4444; }
+        .diff-change-badge.insert  { background: rgba(16,185,129,0.2); color: #10b981; }
     </style>
 </head>
 <body>
@@ -1265,11 +1333,52 @@
                 </div>
                 
                 <div class="extra-tool-card">
-                    <h3 data-i18n="ai-detect-title"><i class="ph-duotone ph-robot"></i> Quét nguồn AI</h3>
-                    <p data-i18n="ai-detect-desc" style="font-size:13px; color: var(--text-muted);">Máy dò xác suất do AI tạo ra</p>
-                    <div style="height: 16px;"></div> <!-- Spacer -->
-                    <button class="tool-btn" id="aiDetectBtn" data-i18n="ai-detect-btn" style="background: var(--accent-primary); color: white;">Quét văn bản chính</button>
+                    <h3><i class="ph-duotone ph-robot"></i> Quét nguồn AI</h3>
+                    <p style="font-size:13px; color: var(--text-muted);">Máy dò xác suất do AI tạo ra</p>
+                    <div style="height: 16px;"></div>
+                    <button class="tool-btn" id="aiDetectBtn" style="background: var(--accent-primary); color: white;">Quét văn bản chính</button>
                     <div id="aiDetectResults" style="margin-top:16px; font-size: 14px;"></div>
+                </div>
+
+                <!-- ── SUMMARIZE ── -->
+                <div class="extra-tool-card">
+                    <h3><i class="ph-duotone ph-article"></i> Tóm tắt văn bản</h3>
+                    <p style="font-size:13px; color:var(--text-muted);">AI tóm gọn ý chính trong vài giây</p>
+                    <div class="tool-tabs" style="margin-top:12px;">
+                        <button class="tool-tab active" onclick="setSumLen('short',this)">Ngắn</button>
+                        <button class="tool-tab" onclick="setSumLen('medium',this)">Vừa</button>
+                        <button class="tool-tab" onclick="setSumLen('long',this)">Chi tiết</button>
+                    </div>
+                    <button class="tool-btn" id="summarizeBtn" style="background:var(--accent-primary);color:white;" onclick="runSummarize()">
+                        <i class="ph ph-magic-wand"></i> Tóm tắt ngay
+                    </button>
+                    <div id="summarizeResults" class="tool-result-box hidden"></div>
+                </div>
+
+                <!-- ── PARAPHRASE ── -->
+                <div class="extra-tool-card">
+                    <h3><i class="ph-duotone ph-arrows-clockwise"></i> Paraphrase</h3>
+                    <p style="font-size:13px; color:var(--text-muted);">Viết lại khác từ, tránh đạo văn</p>
+                    <div class="tool-tabs" style="margin-top:12px;">
+                        <button class="tool-tab active" onclick="setParaMode('standard',this)">Chuẩn</button>
+                        <button class="tool-tab" onclick="setParaMode('creative',this)">Sáng tạo</button>
+                        <button class="tool-tab" onclick="setParaMode('formal',this)">Trang trọng</button>
+                        <button class="tool-tab" onclick="setParaMode('simple',this)">Đơn giản</button>
+                    </div>
+                    <button class="tool-btn" id="paraphraseBtn" style="background:var(--accent-primary);color:white;" onclick="runParaphrase()">
+                        <i class="ph ph-magic-wand"></i> Viết lại ngay
+                    </button>
+                    <div id="paraphraseResults" class="tool-result-box hidden"></div>
+                </div>
+
+                <!-- ── DIFF VIEW ── -->
+                <div class="extra-tool-card" style="grid-column: 1 / -1;">
+                    <h3><i class="ph-duotone ph-git-diff"></i> So sánh Trước / Sau</h3>
+                    <p style="font-size:13px; color:var(--text-muted);">Xem chính xác những gì đã thay đổi sau khi phân tích</p>
+                    <button class="tool-btn" id="diffBtn" style="background:var(--accent-primary);color:white;margin-top:12px;" onclick="runDiff()">
+                        <i class="ph ph-git-diff"></i> Xem thay đổi
+                    </button>
+                    <div id="diffResults" class="hidden" style="margin-top:14px;"></div>
                 </div>
             </div>
         </div>
@@ -2160,6 +2269,185 @@
     }
 
     window.toggleChat = toggleChat;
+
+    /* ══════════════════════════════════════════════
+       SUMMARIZE
+    ══════════════════════════════════════════════ */
+    let sumLength = "short";
+
+    window.setSumLen = function(len, btn) {
+        sumLength = len;
+        btn.closest(".tool-tabs").querySelectorAll(".tool-tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+    };
+
+    window.runSummarize = async function() {
+        const text = document.getElementById("inputText")?.value?.trim();
+        if (!text) return alert("Nhập văn bản vào ô chính trước.");
+        const btn = document.getElementById("summarizeBtn");
+        const out = document.getElementById("summarizeResults");
+        const lang = document.getElementById("langSelect")?.value || "en-US";
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner"></i> Đang tóm tắt...';
+        out.classList.remove("hidden");
+        out.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">⏳ AI đang xử lý...</div>';
+
+        try {
+            const res = await fetch(BASE_URL + "/summarize", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                body: JSON.stringify({ text, length: sumLength, lang: lang.startsWith("vi") ? "vi" : "en" })
+            });
+            const data = await res.json();
+            if (data.error) { out.innerHTML = `<span style="color:#ef4444;">⚠️ ${data.error}</span>`; return; }
+
+            const kpHTML = data.key_points?.length
+                ? `<div style="margin-top:12px;"><strong style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Điểm chính</strong><ul style="margin-top:6px;padding-left:18px;">${data.key_points.map(p=>`<li style="margin-bottom:4px;">${p}</li>`).join("")}</ul></div>`
+                : "";
+
+            out.innerHTML = `
+                <div class="tool-stat-row">
+                    <span class="tool-stat-chip">${data.word_count_original} từ gốc</span>
+                    <span class="tool-stat-chip green">${data.word_count_summary} từ tóm tắt</span>
+                    <span class="tool-stat-chip amber">Giảm ${data.reduction_percent}%</span>
+                </div>
+                <div style="line-height:1.7;">${data.summary}</div>
+                ${kpHTML}
+                <button onclick="navigator.clipboard.writeText(document.getElementById('summarizeResults').innerText)" style="margin-top:12px;background:none;border:1px solid var(--border-medium);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--text-muted);cursor:pointer;">
+                    <i class="ph ph-copy"></i> Sao chép
+                </button>`;
+        } catch(e) {
+            out.innerHTML = `<span style="color:#ef4444;">⚠️ Lỗi kết nối server.</span>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-magic-wand"></i> Tóm tắt ngay';
+        }
+    };
+
+    /* ══════════════════════════════════════════════
+       PARAPHRASE
+    ══════════════════════════════════════════════ */
+    let paraMode = "standard";
+
+    window.setParaMode = function(mode, btn) {
+        paraMode = mode;
+        btn.closest(".tool-tabs").querySelectorAll(".tool-tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+    };
+
+    window.runParaphrase = async function() {
+        const text = document.getElementById("inputText")?.value?.trim();
+        if (!text) return alert("Nhập văn bản vào ô chính trước.");
+        const btn = document.getElementById("paraphraseBtn");
+        const out = document.getElementById("paraphraseResults");
+        const lang = document.getElementById("langSelect")?.value || "en-US";
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner"></i> Đang viết lại...';
+        out.classList.remove("hidden");
+        out.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">⏳ AI đang xử lý...</div>';
+
+        try {
+            const res = await fetch(BASE_URL + "/paraphrase", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                body: JSON.stringify({ text, mode: paraMode, lang: lang.startsWith("vi") ? "vi" : "en" })
+            });
+            const data = await res.json();
+            if (data.error) { out.innerHTML = `<span style="color:#ef4444;">⚠️ ${data.error}</span>`; return; }
+
+            out.innerHTML = `
+                ${data.changes_made ? `<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">💡 ${data.changes_made}</div>` : ""}
+                <div class="paraphrase-version">
+                    <div class="paraphrase-version-label">✏️ Phiên bản 1</div>
+                    <button class="paraphrase-use-btn" onclick="usePara(0)">Dùng</button>
+                    <div id="paraV1" style="font-size:14px;line-height:1.7;padding-right:60px;">${data.version_1 || ""}</div>
+                </div>
+                <div class="paraphrase-version">
+                    <div class="paraphrase-version-label">✏️ Phiên bản 2</div>
+                    <button class="paraphrase-use-btn" onclick="usePara(1)">Dùng</button>
+                    <div id="paraV2" style="font-size:14px;line-height:1.7;padding-right:60px;">${data.version_2 || ""}</div>
+                </div>`;
+        } catch(e) {
+            out.innerHTML = `<span style="color:#ef4444;">⚠️ Lỗi kết nối server.</span>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-magic-wand"></i> Viết lại ngay';
+        }
+    };
+
+    window.usePara = function(idx) {
+        const el = document.getElementById(idx === 0 ? "paraV1" : "paraV2");
+        if (!el) return;
+        const ta = document.getElementById("inputText");
+        if (ta) { ta.value = el.innerText; ta.dispatchEvent(new Event("input")); ta.focus(); }
+    };
+
+    /* ══════════════════════════════════════════════
+       DIFF VIEW
+    ══════════════════════════════════════════════ */
+    window.runDiff = async function() {
+        const original  = document.getElementById("inputText")?.value?.trim();
+        const corrected = document.getElementById("correctedText")?.innerText?.trim()
+                       || document.getElementById("correctedText")?.value?.trim();
+
+        if (!original) return alert("Nhập văn bản vào ô chính trước.");
+        if (!corrected) return alert("Chạy phân tích trước để có văn bản đã chỉnh sửa.");
+
+        const btn = document.getElementById("diffBtn");
+        const out = document.getElementById("diffResults");
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner"></i> Đang so sánh...';
+        out.classList.remove("hidden");
+        out.innerHTML = '<div style="color:var(--text-muted);">⏳ Đang tính toán thay đổi...</div>';
+
+        try {
+            const res = await fetch(BASE_URL + "/diff", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                body: JSON.stringify({ original, corrected })
+            });
+            const data = await res.json();
+            if (data.error) { out.innerHTML = `<span style="color:#ef4444;">⚠️ ${data.error}</span>`; return; }
+
+            const s = data.stats || {};
+            const delta = s.word_delta >= 0 ? `+${s.word_delta}` : `${s.word_delta}`;
+            const deltaColor = s.word_delta < 0 ? "green" : s.word_delta > 0 ? "amber" : "";
+
+            const changesHTML = (data.changes || []).slice(0, 20).map(c => {
+                if (c.type === "replace") return `<div class="diff-change-item replace"><span class="diff-change-badge replace">Thay</span><span style="text-decoration:line-through;color:#ef4444;">${c.from}</span> <span style="color:#10b981;">→ ${c.to}</span></div>`;
+                if (c.type === "delete")  return `<div class="diff-change-item delete"><span class="diff-change-badge delete">Xóa</span><span style="color:#ef4444;">${c.from}</span></div>`;
+                if (c.type === "insert")  return `<div class="diff-change-item insert"><span class="diff-change-badge insert">Thêm</span><span style="color:#10b981;">${c.to}</span></div>`;
+                return "";
+            }).join("");
+
+            out.innerHTML = `
+                <div class="tool-stat-row">
+                    <span class="tool-stat-chip">${s.total_changes} thay đổi</span>
+                    <span class="tool-stat-chip amber">${s.replacements} thay thế</span>
+                    <span class="tool-stat-chip red">${s.deletions} xóa</span>
+                    <span class="tool-stat-chip green">${s.insertions} thêm</span>
+                    <span class="tool-stat-chip ${deltaColor}">${delta} từ</span>
+                </div>
+                <div class="diff-container">
+                    <div class="diff-panel">
+                        <div class="diff-panel-header before"><i class="ph ph-x-circle"></i> Trước</div>
+                        <div class="diff-panel-body">${data.original_html}</div>
+                    </div>
+                    <div class="diff-panel">
+                        <div class="diff-panel-header after"><i class="ph ph-check-circle"></i> Sau</div>
+                        <div class="diff-panel-body">${data.corrected_html}</div>
+                    </div>
+                </div>
+                ${changesHTML ? `<div class="diff-changes-list">${changesHTML}</div>` : ""}`;
+        } catch(e) {
+            out.innerHTML = `<span style="color:#ef4444;">⚠️ Lỗi kết nối server.</span>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-git-diff"></i> Xem thay đổi';
+        }
+    };
 </script>
 <script src="config/config.js"></script>
 <script src="assets/js/translations.js"></script>
