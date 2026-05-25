@@ -46,7 +46,7 @@ class AIModel:
                 client = self._get_client()
                 # (phần generate_content giữ nguyên như cũ của bạn)
                 response = client.models.generate_content(
-                    model="gemini-2.0-flash",   # Model mới
+                    model="gemini-2.5-flash",   # Model mới
                     contents=prompt
                 )
                 # ... xử lý response giống cũ
@@ -81,7 +81,7 @@ class AIModel:
 Văn bản: {text[:6000]}"""
 
                 response = client.models.generate_content(
-                    model="gemini-2.0-flash",
+                    model="gemini-2.5-flash",
                     contents=prompt
                 )
 
