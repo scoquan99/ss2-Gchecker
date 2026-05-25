@@ -9,7 +9,10 @@ try:
     client.admin.command("ping")   # fail fast nếu Mongo down
     db = client[DB_NAME]
     users_col = db["users"]
-    users_col.create_index("username", unique=True, name="uniq_username")
+    try:
+        users_col.create_index("username", unique=True, name="uniq_username")
+    except Exception:
+        pass   # index đã tồn tại với tên khác — không sao
 except PyMongoError as e:
     import sys
     print(f"[FATAL] Cannot connect to MongoDB: {e}", file=sys.stderr)

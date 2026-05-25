@@ -47,7 +47,7 @@ def chat():
             from google import genai as g
             client = g.Client(api_key=api_key)
             res = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash",
                 contents=prompt
             )
             reply = res.text.strip()

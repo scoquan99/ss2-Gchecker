@@ -7,11 +7,13 @@ try:
     client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
     db = client[DB_NAME]
     history_collection = db["history"]
-    # Compound index cho hot query: filter username + sort created_at desc
-    history_collection.create_index(
-        [("username", ASCENDING), ("created_at", DESCENDING)],
-        name="hist_user_created"
-    )
+    try:
+        history_collection.create_index(
+            [("username", ASCENDING), ("created_at", DESCENDING)],
+            name="hist_user_created"
+        )
+    except Exception:
+        pass   # index đã tồn tại
 except PyMongoError as e:
     import sys
     print(f"[FATAL] Cannot connect to MongoDB: {e}", file=sys.stderr)
