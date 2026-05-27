@@ -17,8 +17,8 @@ const AppConfig = {
     APP_NAME: "Text Quality Checker Pro",
     APP_VERSION: "1.0.0",
 
-    // Supported languages
-    SUPPORTED_LANGS: ["en", "vi"],
+    // Supported languages (Vietnamese excluded to keep UI consistent)
+    SUPPORTED_LANGS: ["en", "fr", "es"],
     DEFAULT_LANG: "en",
 
     // Local storage keys (centralized to avoid typos)

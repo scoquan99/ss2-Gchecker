@@ -160,9 +160,13 @@ Trả về chỉ JSON, không thêm gì khác:
 Văn bản: {text[:6000]}
 """
 
+            from google.genai import types as genai_types
             res = client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=prompt
+                contents=prompt,
+                config=genai_types.GenerateContentConfig(
+                    thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
+                )
             )
             
             raw = res.text.strip().strip("```json").strip("```").strip()
@@ -234,7 +238,14 @@ Text:
     for api_key in keys:
         try:
             client = gemini.Client(api_key=api_key)
-            res = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+            from google.genai import types as genai_types
+            res = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=genai_types.GenerateContentConfig(
+                    thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
+                )
+            )
             raw = res.text.strip().strip("```json").strip("```").strip()
             result = json.loads(raw)
             # Tính word count thực tế nếu AI không trả
@@ -303,7 +314,14 @@ Original text:
     for api_key in keys:
         try:
             client = gemini.Client(api_key=api_key)
-            res = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+            from google.genai import types as genai_types
+            res = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=genai_types.GenerateContentConfig(
+                    thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
+                )
+            )
             raw = res.text.strip().strip("```json").strip("```").strip()
             return jsonify(json.loads(raw))
         except Exception as e:

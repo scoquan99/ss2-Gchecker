@@ -1,9 +1,11 @@
 import language_tool_python
 import language_tool_python.utils as lt_utils
 from google import genai
+from google.genai import types as genai_types
 import json
 import os
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -179,7 +181,13 @@ Chỉ trả về JSON:
         for i, api_key in enumerate(api_keys):
             try:
                 client = genai.Client(api_key=api_key)
-                response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                    config=genai_types.GenerateContentConfig(
+                        thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
+                    )
+                )
                 raw = response.text.strip().strip("```json").strip("```").strip()
                 data = json.loads(raw)
                 return {
@@ -216,7 +224,13 @@ Chỉ trả về JSON:
         for i, api_key in enumerate(api_keys):
             try:
                 client = genai.Client(api_key=api_key)
-                response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                    config=genai_types.GenerateContentConfig(
+                        thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
+                    )
+                )
                 raw = response.text.strip().strip("```json").strip("```").strip()
                 return json.loads(raw)
             except Exception as e:
@@ -273,6 +287,76 @@ Chỉ trả về JSON:
             result = self.analyze_vietnamese(text, mode, tone)
             result["stats"] = self._compute_stats(text)
             result["ai_analysis"] = None
+            return result
+
+        # ── Mode PRO: chạy LanguageTool + Gemini song song ──
+        if mode != "basic":
+            lt_result = {}
+            ai_result = {}
+
+            def run_lt():
+                tool = self._get_tool(lang)
+                matches = tool.check(text)
+                lt_result["corrected"] = lt_utils.correct(text, matches)
+                lt_result["matches"]   = matches
+
+            def run_ai():
+                ai_result["data"] = self._run_ai_analysis(text, mode, tone)
+
+            t1 = threading.Thread(target=run_lt)
+            t2 = threading.Thread(target=run_ai)
+            t1.start(); t2.start()
+            t1.join(); t2.join()
+
+            matches      = lt_result.get("matches", [])
+            lt_corrected = lt_result.get("corrected", text)
+            ai           = ai_result.get("data")
+
+            grammar_errors, style_errors = [], []
+            style_categories = {
+                "STYLE","TYPOGRAPHY","REDUNDANCY",
+                "PLAIN_ENGLISH","REGISTER","COLLOQUIALISMS",
+                "PUNCTUATION","CASING"
+            }
+            for m in matches:
+                err = {
+                    "message":     m.message,
+                    "rule":        m.rule_id,
+                    "category":    m.category,
+                    "suggestions": m.replacements,
+                    "offset":      m.offset,
+                    "length":      m.error_length
+                }
+                cat  = (m.category or "").upper()
+                rule = m.rule_id.lower()
+                if cat in style_categories or "style" in rule or "redundan" in rule:
+                    style_errors.append(err)
+                else:
+                    grammar_errors.append(err)
+
+            result = {
+                "corrected_text":   lt_corrected,
+                "grammar_errors":   grammar_errors,
+                "style_errors":     style_errors,
+                "highlighted_text": _build_highlight(text, grammar_errors, style_errors),
+                "ai_analysis":      ai,
+                "stats":            self._compute_stats(text),
+            }
+
+            if ai and not ai.get("error"):
+                if ai.get("improved_text"):
+                    result["corrected_text"] = ai["improved_text"]
+                if ai.get("issues"):
+                    for issue in ai["issues"]:
+                        result["style_errors"].append({
+                            "message":   f'[{issue.get("type","").upper()}] {issue.get("explanation","")}',
+                            "rule":      issue.get("type", "AI").upper(),
+                            "category":  "STYLE",
+                            "suggestions": [issue.get("suggestion", "")],
+                            "offset":    None,
+                            "length":    None,
+                            "original":  issue.get("original", "")
+                        })
             return result
 
         # ── LanguageTool (luôn chạy để lấy grammar errors) ──

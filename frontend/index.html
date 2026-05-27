@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -10,6 +10,8 @@
     <!-- Thư viện Phosphor Icons (Sang trọng, nét mảnh) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+    <script src="config/config.js"></script>
+    <script src="assets/js/translations.js"></script>
     <style>
         /* ================= CƠ BẢN ================= */
         * {
@@ -625,16 +627,15 @@
         }
         .popup-overlay.open { display: flex; }
         .popup-card {
-            width: min(980px, 100%);
-            max-width: 1080px;
+            width: min(1080px, calc(100vw - 40px));
             background: var(--card-bg);
             border-radius: var(--radius-xl);
-            padding: 28px;
+            padding: clamp(16px, 4vw, 32px);
             box-shadow: 0 20px 60px rgba(15,23,42,0.25);
             border: 1px solid var(--border-light);
             text-align: center;
             position: relative;
-            max-height: 85vh;
+            max-height: 90vh;
             overflow-y: auto;
         }
         body.dark-mode .popup-card { background: #111827; border-color: var(--border-medium); }
@@ -643,17 +644,30 @@
             font-size: 22px;
             font-weight: 800;
         }
+        /* 2-column grid for basic mode results */
         #popupResults.popup-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(260px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
             margin-top: 20px;
             text-align: left;
         }
         #popupResults.popup-grid .result-card {
             text-align: left;
+            min-width: 0;
         }
-        @media (max-width: 980px) {
+        /* full-width single card: AI deep analysis */
+        #popupResults.popup-single {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            text-align: left;
+        }
+        #popupResults.popup-single .result-card {
+            width: 100%;
+            min-width: 0;
+        }
+        @media (max-width: 700px) {
             #popupResults.popup-grid {
                 grid-template-columns: 1fr;
             }
@@ -1166,7 +1180,7 @@
         <!-- Header -->
         <div class="app-header">
             <div class="brand">
-                <h2 data-i18n="app-role"><i class="ph-fill ph-sparkle"></i> PHÒNG LAB CHUẨN XÁC</h2>
+                <h2 data-i18n="app-role"><i class="ph-fill ph-sparkle"></i> PRECISION WRITING LAB</h2>
                 <h1 data-i18n="app-title">Lumina Text Studio</h1>
             </div>
             <div class="header-controls">
@@ -1188,7 +1202,6 @@
                     <div class="dropdown-item" style="position:relative;">
                         <i class="ph ph-translate"></i> <span data-i18n="dropdown-lang">Language</span>
                         <select id="langSwitcher" onchange="handleLangChange(this.value)" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
-                            <option value="vi" data-i18n="lang-vi">Tiếng Việt</option>
                             <option value="en" data-i18n="lang-en">English</option>
                             <option value="fr" data-i18n="lang-fr">Français</option>
                             <option value="es" data-i18n="lang-es">Español</option>
@@ -1196,11 +1209,11 @@
                         <i class="ph ph-caret-down" style="margin-left:auto; font-size:16px;"></i>
                     </div>
                     <div class="dropdown-item" onclick="toggleDarkMode(event)">
-                        <i class="ph ph-moon"></i> <span data-i18n="dropdown-darkmode">Chế độ tối</span>
+                        <i class="ph ph-moon"></i> <span data-i18n="dropdown-darkmode">Dark mode</span>
                         <div class="toggle-switch" id="darkModeSwitch"><div class="toggle-circle"></div></div>
                     </div>
                     <div class="dropdown-item">
-                        <i class="ph ph-question"></i> <span data-i18n="dropdown-help">Trung tâm trợ giúp</span>
+                        <i class="ph ph-question"></i> <span data-i18n="dropdown-help">Help Center</span>
                     </div>
                 </div>
             </div>
@@ -1208,63 +1221,63 @@
 
         <!-- Input Area -->
         <div class="input-wrapper">
-            <textarea id="inputText" data-i18n="input-placeholder" placeholder="Viết hoặc dán văn bản của bạn vào đây... (10+ từ để phân tích sâu hơn)"></textarea>
+            <textarea id="inputText" data-i18n="input-placeholder" placeholder="Write or paste your text here... (10+ words for deeper analysis)"></textarea>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding: 0 4px;">
                 <span id="charCounter" style="font-size:13px; color:var(--text-muted);">0 / 5000</span>
-                <span id="charWarning" style="font-size:13px; color:#ef4444; display:none;">⚠️ Gần đến giới hạn ký tự</span>
+                <span id="charWarning" style="font-size:13px; color:#ef4444; display:none;">⚠️ Approaching character limit</span>
             </div>
         </div>
 
         <!-- Modes -->
-        <div class="section-title"><i class="ph-fill ph-cpu"></i> <span data-i18n="select-mode"> Analyzing</span></div>
+        <div class="section-title"><i class="ph-fill ph-cpu"></i> <span data-i18n="select-mode">Select Analysis Mode</span></div>
         <div class="cards-grid">
             <div class="tool-card active" data-mode="basic" onclick="selectMode('basic')">
                 <i class="ph-duotone ph-check-circle tool-icon"></i>
                 <div class="tool-details">
-                    <h3 data-i18n="basic-title">Kiểm tra cơ bản</h3>
-                    <p data-i18n="basic-desc">Ngữ pháp, chính tả & văn phong</p>
+                    <h3 data-i18n="basic-title">Basic Verification</h3>
+                    <p data-i18n="basic-desc">Grammar, spelling & style checks</p>
                 </div>
             </div>
             <div class="tool-card" data-mode="tone" onclick="selectMode('tone')">
                 <span class="badge-pro">PRO</span>
                 <i class="ph-duotone ph-mask-happy tool-icon"></i>
                 <div class="tool-details">
-                    <h3 data-i18n="tone-title">Kiến tạo giọng văn</h3>
-                    <p data-i18n="tone-desc">Đồng bộ cảm xúc & nhịp điệu</p>
+                    <h3 data-i18n="tone-title">Style & Tone Aligner</h3>
+                    <p data-i18n="tone-desc">Sync emotion & rhythm of your writing</p>
                 </div>
             </div>
             <div class="tool-card" data-mode="structural" onclick="selectMode('structural')">
                 <span class="badge-pro">PRO</span>
                 <i class="ph-duotone ph-tree-structure tool-icon"></i>
                 <div class="tool-details">
-                    <h3 data-i18n="structural-title">Cấu trúc mạch lạc</h3>
-                    <p data-i18n="struct-desc">Biến tấu câu chữ & tính logic</p>
+                    <h3 data-i18n="structural-title">Structural Analysis</h3>
+                    <p data-i18n="struct-desc">Sentence variation & logical flow</p>
                 </div>
             </div>
             <div class="tool-card" data-mode="clarity" onclick="selectMode('clarity')">
                 <span class="badge-pro">PRO</span>
                 <i class="ph-duotone ph-scissors tool-icon"></i>
                 <div class="tool-details">
-                    <h3 data-i18n="clarity-title">Tối ưu độ trong trẻo</h3>
-                    <p data-i18n="clarity-desc">Loại bỏ từ thừa & câu bị động</p>
+                    <h3 data-i18n="clarity-title">Clarity Boost</h3>
+                    <p data-i18n="clarity-desc">Remove filler words & passive voice</p>
                 </div>
             </div>
             <div class="tool-card" data-mode="impact" onclick="selectMode('impact')">
                 <span class="badge-pro">PRO</span>
                 <i class="ph-duotone ph-lightning tool-icon"></i>
                 <div class="tool-details">
-                    <h3 data-i18n="impact-title">Sức mạnh ngôn từ</h3>
-                    <p data-i18n="impact-desc">Từ đồng nghĩa & nâng cấp từ vựng</p>
+                    <h3 data-i18n="impact-title">Impact Suggestions</h3>
+                    <p data-i18n="impact-desc">Powerful synonyms & vocabulary upgrades</p>
                 </div>
             </div>
         </div>
 
         <div id="toneWrapper" style="display: none;">
-            <input type="text" id="toneInput" data-i18n="tone-placeholder" placeholder="Vd: Thuyết phục / Ấm áp / Kỹ thuật / Kể chuyện..." />
+            <input type="text" id="toneInput" data-i18n="tone-placeholder" placeholder="e.g. Persuasive / Warm / Technical / Narrative..." />
         </div>
         
         <button class="check-btn" id="checkButton" data-i18n="analyze-btn">
-            <i class="ph-bold ph-magic-wand"></i> Phân Tích & Tinh Chỉnh
+            <i class="ph-bold ph-magic-wand"></i> Analyze & Refine
         </button>
         <div id="status"></div>
 
@@ -1272,33 +1285,33 @@
         <div class="results-panel" id="results" hidden>
             <div class="result-card">
                 <h4 data-i18n="optimized-title">
-                    <i class="ph-fill ph-check-square-offset"></i> Văn bản đã đánh bóng
+                    <i class="ph-fill ph-check-square-offset"></i> Polished Text
                     <button id="copyBtn" onclick="copyResult()" style="margin-left:auto; display:flex; align-items:center; gap:6px; background:var(--surface-elevated); border:1px solid var(--border-medium); color:var(--text-secondary); border-radius:20px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;">
-                        <i class="ph ph-copy" style="font-size:16px;"></i> <span id="copyBtnText">Sao chép</span>
+                        <i class="ph ph-copy" style="font-size:16px;"></i> <span id="copyBtnText">Copy</span>
                     </button>
                 </h4>
                 <div id="correctedText" style="font-size: 16px; line-height: 1.8;"></div>
             </div>
             
             <div class="result-card">
-                <h4 data-i18n="highlights-title"><i class="ph-fill ph-highlighter-circle"></i> Điểm nhấn câu</h4>
+                <h4 data-i18n="highlights-title"><i class="ph-fill ph-highlighter-circle"></i> Sentence Highlights</h4>
                 <div id="sentenceHighlightsDiv" style="line-height: 1.8;"></div>
             </div>
             
             <div class="two-columns">
                 <div class="result-card">
-                    <h4 data-i18n="stats-title"><i class="ph-fill ph-chart-bar"></i> Chỉ số bài viết</h4>
+                    <h4 data-i18n="stats-title"><i class="ph-fill ph-chart-bar"></i> Writing Statistics</h4>
                     <div id="writingStatsList" style="line-height: 1.8;"></div>
                     <div id="keywordDensity" style="margin-top: 20px;"></div>
                 </div>
                 <div class="result-card">
-                    <h4 data-i18n="errors-title"><i class="ph-fill ph-warning-circle" style="color: #f59e0b;"></i> Đề xuất cải thiện</h4>
+                    <h4 data-i18n="errors-title"><i class="ph-fill ph-warning-circle" style="color: #f59e0b;"></i> Improvement Suggestions</h4>
                     <ul id="errorsList" style="margin:0; padding-left:0;"></ul>
                 </div>
             </div>
             
             <div class="result-card" id="aiPanel" hidden style="background: var(--accent-soft); border-color: var(--accent-primary);">
-                <h4 data-i18n="ai-panel-title"><i class="ph-fill ph-brain"></i> Phân tích chiều sâu từ AI</h4>
+                <h4 data-i18n="ai-panel-title"><i class="ph-fill ph-brain"></i> Deep AI Analysis</h4>
                 <div id="aiAnalysisOutput" style="font-size: 15px;"></div>
             </div>
         </div>
@@ -1311,72 +1324,72 @@
         <!-- Extras section: collapsible -->
         <div class="extras-section">
             <div class="extras-header" onclick="toggleExtrasPanel()" id="extrasHeader">
-                <h2 data-i18n="extras-title"><i class="ph-fill ph-toolbox"></i> Bộ công cụ chuyên gia</h2>
+                <h2 data-i18n="extras-title"><i class="ph-fill ph-toolbox"></i> Expert Tools Suite</h2>
                 <i class="ph-bold ph-caret-right toggle-extras-icon" id="extrasToggleIcon"></i>
             </div>
             
             <div class="extras-content" id="extrasContent">
                 <div class="extra-tool-card">
-                    <h3 data-i18n="thesaurus-title"><i class="ph-duotone ph-books"></i> Kho từ đồng nghĩa</h3>
-                    <p data-i18n="thesaurus-desc" style="font-size:13px; color: var(--text-muted);">Từ đồng nghĩa & trái nghĩa WordNet</p>
-                    <input type="text" id="thesaurusInput" class="tool-input" data-i18n="thesaurus-placeholder" placeholder="Nhập từ cần tra..."/>
-                    <button class="tool-btn" id="thesaurusBtn" data-i18n="thesaurus-btn">Khám phá</button>
+                    <h3 data-i18n="thesaurus-title"><i class="ph-duotone ph-books"></i> Thesaurus</h3>
+                    <p data-i18n="thesaurus-desc" style="font-size:13px; color: var(--text-muted);">Synonyms & antonyms via WordNet</p>
+                    <input type="text" id="thesaurusInput" class="tool-input" data-i18n="thesaurus-placeholder" placeholder="Type a word to look up..."/>
+                    <button class="tool-btn" id="thesaurusBtn" data-i18n="thesaurus-btn">Lookup</button>
                     <div id="thesaurusResults" style="margin-top:16px; font-size: 14px;"></div>
                 </div>
                 
                 <div class="extra-tool-card">
-                    <h3 data-i18n="cap-title"><i class="ph-duotone ph-text-aa"></i> Chuẩn hoá Tiêu đề</h3>
-                    <p data-i18n="cap-desc" style="font-size:13px; color: var(--text-muted);">Định dạng chuẩn AP/MLA</p>
-                    <input type="text" id="capitalizeInput" class="tool-input" data-i18n="cap-placeholder" placeholder="nhập tiêu đề lộn xộn vào đây"/>
-                    <button class="tool-btn" id="capitalizeBtn" data-i18n="cap-btn">Định dạng</button>
+                    <h3 data-i18n="cap-title"><i class="ph-duotone ph-text-aa"></i> Title Capitalizer</h3>
+                    <p data-i18n="cap-desc" style="font-size:13px; color: var(--text-muted);">AP/MLA standard title formatting</p>
+                    <input type="text" id="capitalizeInput" class="tool-input" data-i18n="cap-placeholder" placeholder="Enter messy title here..."/>
+                    <button class="tool-btn" id="capitalizeBtn" data-i18n="cap-btn">Capitalize</button>
                     <div id="capitalizeResults" style="margin-top:16px; font-weight:600; font-size: 15px;"></div>
                 </div>
                 
                 <div class="extra-tool-card">
-                    <h3><i class="ph-duotone ph-robot"></i> Quét nguồn AI</h3>
-                    <p style="font-size:13px; color: var(--text-muted);">Máy dò xác suất do AI tạo ra</p>
+                    <h3 data-i18n="ai-detect-title"><i class="ph-duotone ph-robot"></i> AI Origin Scanner</h3>
+                    <p data-i18n="ai-detect-desc" style="font-size:13px; color: var(--text-muted);">Detects probability of AI-generated content</p>
                     <div style="height: 16px;"></div>
-                    <button class="tool-btn" id="aiDetectBtn" style="background: var(--accent-primary); color: white;">Quét văn bản chính</button>
+                    <button class="tool-btn" id="aiDetectBtn" data-i18n="ai-detect-btn" style="background: var(--accent-primary); color: white;">Scan Main Text</button>
                     <div id="aiDetectResults" style="margin-top:16px; font-size: 14px;"></div>
                 </div>
 
                 <!-- ── SUMMARIZE ── -->
                 <div class="extra-tool-card">
-                    <h3><i class="ph-duotone ph-article"></i> Tóm tắt văn bản</h3>
-                    <p style="font-size:13px; color:var(--text-muted);">AI tóm gọn ý chính trong vài giây</p>
+                    <h3 data-i18n="summarize-title"><i class="ph-duotone ph-article"></i> Text Summarizer</h3>
+                    <p data-i18n="summarize-desc" style="font-size:13px; color:var(--text-muted);">AI condenses key points in seconds</p>
                     <div class="tool-tabs" style="margin-top:12px;">
-                        <button class="tool-tab active" onclick="setSumLen('short',this)">Ngắn</button>
-                        <button class="tool-tab" onclick="setSumLen('medium',this)">Vừa</button>
-                        <button class="tool-tab" onclick="setSumLen('long',this)">Chi tiết</button>
+                        <button class="tool-tab active" data-i18n="sum-short" onclick="setSumLen('short',this)">Short</button>
+                        <button class="tool-tab" data-i18n="sum-medium" onclick="setSumLen('medium',this)">Medium</button>
+                        <button class="tool-tab" data-i18n="sum-detailed" onclick="setSumLen('long',this)">Detailed</button>
                     </div>
-                    <button class="tool-btn" id="summarizeBtn" style="background:var(--accent-primary);color:white;" onclick="runSummarize()">
-                        <i class="ph ph-magic-wand"></i> Tóm tắt ngay
+                    <button class="tool-btn" id="summarizeBtn" data-i18n="summarize-btn" style="background:var(--accent-primary);color:white;" onclick="runSummarize()">
+                        <i class="ph ph-magic-wand"></i> Summarize Now
                     </button>
                     <div id="summarizeResults" class="tool-result-box hidden"></div>
                 </div>
 
                 <!-- ── PARAPHRASE ── -->
                 <div class="extra-tool-card">
-                    <h3><i class="ph-duotone ph-arrows-clockwise"></i> Paraphrase</h3>
-                    <p style="font-size:13px; color:var(--text-muted);">Viết lại khác từ, tránh đạo văn</p>
+                    <h3 data-i18n="para-title"><i class="ph-duotone ph-arrows-clockwise"></i> Paraphrase</h3>
+                    <p data-i18n="para-desc" style="font-size:13px; color:var(--text-muted);">Rewrite differently to avoid plagiarism</p>
                     <div class="tool-tabs" style="margin-top:12px;">
-                        <button class="tool-tab active" onclick="setParaMode('standard',this)">Chuẩn</button>
-                        <button class="tool-tab" onclick="setParaMode('creative',this)">Sáng tạo</button>
-                        <button class="tool-tab" onclick="setParaMode('formal',this)">Trang trọng</button>
-                        <button class="tool-tab" onclick="setParaMode('simple',this)">Đơn giản</button>
+                        <button class="tool-tab active" data-i18n="para-standard" onclick="setParaMode('standard',this)">Standard</button>
+                        <button class="tool-tab" data-i18n="para-creative" onclick="setParaMode('creative',this)">Creative</button>
+                        <button class="tool-tab" data-i18n="para-formal" onclick="setParaMode('formal',this)">Formal</button>
+                        <button class="tool-tab" data-i18n="para-simple" onclick="setParaMode('simple',this)">Simple</button>
                     </div>
-                    <button class="tool-btn" id="paraphraseBtn" style="background:var(--accent-primary);color:white;" onclick="runParaphrase()">
-                        <i class="ph ph-magic-wand"></i> Viết lại ngay
+                    <button class="tool-btn" id="paraphraseBtn" data-i18n="para-btn" style="background:var(--accent-primary);color:white;" onclick="runParaphrase()">
+                        <i class="ph ph-magic-wand"></i> Rewrite Now
                     </button>
                     <div id="paraphraseResults" class="tool-result-box hidden"></div>
                 </div>
 
                 <!-- ── DIFF VIEW ── -->
                 <div class="extra-tool-card" style="grid-column: 1 / -1;">
-                    <h3><i class="ph-duotone ph-git-diff"></i> So sánh Trước / Sau</h3>
-                    <p style="font-size:13px; color:var(--text-muted);">Xem chính xác những gì đã thay đổi sau khi phân tích</p>
-                    <button class="tool-btn" id="diffBtn" style="background:var(--accent-primary);color:white;margin-top:12px;" onclick="runDiff()">
-                        <i class="ph ph-git-diff"></i> Xem thay đổi
+                    <h3 data-i18n="diff-title"><i class="ph-duotone ph-git-diff"></i> Before / After Compare</h3>
+                    <p data-i18n="diff-desc" style="font-size:13px; color:var(--text-muted);">See exactly what changed after analysis</p>
+                    <button class="tool-btn" id="diffBtn" data-i18n="diff-btn" style="background:var(--accent-primary);color:white;margin-top:12px;" onclick="runDiff()">
+                        <i class="ph ph-git-diff"></i> View Changes
                     </button>
                     <div id="diffResults" class="hidden" style="margin-top:14px;"></div>
                 </div>
@@ -1398,18 +1411,18 @@
     <div class="drawer-header">
         <h3><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--accent-primary)"></i>History</h3>
         <div style="display:flex; align-items:center; gap:8px;">
-            <button class="drawer-clear-btn" onclick="deleteAllHistory()" title="Xóa tất cả lịch sử">
-                <i class="ph ph-trash"></i> Xóa tất cả
+            <button class="drawer-clear-btn" onclick="deleteAllHistory()" title="Clear all history">
+                <i class="ph ph-trash"></i> Clear All
             </button>
             <div class="drawer-close" onclick="closeHistory()"><i class="ph ph-x"></i></div>
         </div>
     </div>
     <div class="drawer-search">
-        <input type="text" id="drawerSearch" placeholder="🔍 Find on History..." oninput="filterDrawer()">
+        <input type="text" id="drawerSearch" placeholder="🔍 Search history..." oninput="filterDrawer()">
     </div>
     <div class="drawer-stats">
-        <div class="drawer-stat"><div class="ds-num" id="dStatTotal">—</div><div class="ds-label">Total number of checks</div></div>
-        <div class="drawer-stat"><div class="ds-num" id="dStatAvg">—</div><div class="ds-label">AVG Points</div></div>
+        <div class="drawer-stat"><div class="ds-num" id="dStatTotal">—</div><div class="ds-label">Total Checks</div></div>
+        <div class="drawer-stat"><div class="ds-num" id="dStatAvg">—</div><div class="ds-label">Avg Score</div></div>
         <div class="drawer-stat"><div class="ds-num" id="dStatErrors">—</div><div class="ds-label">Total Errors</div></div>
     </div>
     <div class="drawer-body" id="drawerBody"></div>
@@ -1418,7 +1431,7 @@
 <div class="popup-overlay" id="analyzePopup" onclick="hideAnalyzePopup()">
     <div class="popup-card" onclick="event.stopPropagation ? event.stopPropagation() : null">
         <button class="popup-close" onclick="hideAnalyzePopup()" aria-label="Close popup">×</button>
-        <h3 data-i18n="analyzing-popup-title">Completing Analysis</h3>
+        <h3 data-i18n="analyzing-popup-title">Analyzing your text...</h3>
         <p data-i18n="analyzing-popup-desc"></p>
         <div class="popup-progress"><div class="popup-progress-bar" id="popupProgressBar"></div></div>
         <div id="popupResults" class="popup-grid" style="display: none;"></div>
@@ -1426,7 +1439,7 @@
 </div>
 
 <script>
-    // GIỮ NGUYÊN HOÀN TOÀN LOGIC JAVASCRIPT GỐC CỦA BẠN
+    // Core app logic
     const API_URL = "http://localhost:5000/check";
     const BASE_URL = "http://localhost:5000";
     let activeMode = "basic";
@@ -1445,17 +1458,17 @@
 
     /* ── Copy to clipboard ── */
     window.copyResult = function() {
-        // Dùng plain text đã lưu, không lấy innerHTML (có thể chứa HTML tags)
+        // Use stored plain text, not innerHTML (which may contain HTML tags)
         const text = window._correctedPlainText
             || document.getElementById("correctedText").innerText
             || "";
         navigator.clipboard.writeText(text).then(() => {
             const btn = document.getElementById("copyBtnText");
-            btn.textContent = "Đã sao chép ✓";
+            btn.textContent = "Copied ✓";
             document.getElementById("copyBtn").style.color = "#10b981";
             document.getElementById("copyBtn").style.borderColor = "#10b981";
             setTimeout(() => {
-                btn.textContent = "Sao chép";
+                btn.textContent = "Copy";
                 document.getElementById("copyBtn").style.color = "";
                 document.getElementById("copyBtn").style.borderColor = "";
             }, 2000);
@@ -1476,7 +1489,7 @@
             span.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const tip = document.getElementById("highlightTooltip");
-                const msg = span.dataset.msg || "Lỗi phát hiện";
+                const msg = span.dataset.msg || "Issue detected";
                 const fixes = JSON.parse(span.dataset.fixes || "[]");
                 const type = span.dataset.type;
                 const idx = span.dataset.idx;
@@ -1488,10 +1501,10 @@
                         `<button class="tip-fix" onclick="applyFixFromTooltip('${type}', ${idx}, '${f.replace(/'/g,"\\'")}')">→ ${f}</button>`
                     ).join("");
                 } else {
-                    fixesDiv.innerHTML = `<span style="font-size:13px; color:var(--text-muted)">Không có gợi ý</span>`;
+                    fixesDiv.innerHTML = `<span style="font-size:13px; color:var(--text-muted)">No suggestions available</span>`;
                 }
 
-                // Vị trí tooltip theo chuột
+                // Position tooltip near the clicked word
                 const rect = span.getBoundingClientRect();
                 tip.style.top = (rect.bottom + window.scrollY + 8) + "px";
                 tip.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 340) + "px";
@@ -1530,7 +1543,7 @@
         document.getElementById("checkButton").click();
     };
 
-    /* ── Render highlighted text với span tương tác ── */
+    /* ── Render highlighted text with interactive spans ── */
     function buildInteractiveHighlight(text, errors, type) {
         if (!errors || !errors.length) return null;
         let result = [];
@@ -1575,6 +1588,7 @@
         h3.setAttribute('data-i18n', 'analyzing-popup-title');
         p.setAttribute('data-i18n', 'analyzing-popup-desc');
         applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en'); // Re-apply to update text
+        resultsDiv.className = 'popup-grid';
         resultsDiv.style.display = 'none';
         resultsDiv.innerHTML = '';
         overlay.querySelector('.popup-progress').style.display = 'block';
@@ -1585,48 +1599,47 @@
         setTimeout(() => bar.style.width = '75%', 420);
     }
 
-    function showResultsPopup(resultsHtml) {
-        console.log('showResultsPopup called with:', resultsHtml);
+    function showResultsPopup(resultsHtml, singleCard) {
         const overlay = document.getElementById('analyzePopup');
         const bar = document.getElementById('popupProgressBar');
         const resultsDiv = document.getElementById('popupResults');
         const h3 = overlay.querySelector('h3');
         const p = overlay.querySelector('p');
-        if (!overlay || !bar || !resultsDiv || !h3 || !p) {
-            console.error('Missing elements:', {overlay, bar, resultsDiv, h3, p});
-            return;
-        }
+        if (!overlay || !bar || !resultsDiv || !h3 || !p) return;
         
         // Switch to results state
         h3.setAttribute('data-i18n', 'results-popup-title');
         p.setAttribute('data-i18n', 'results-popup-desc');
         applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en');
         overlay.querySelector('.popup-progress').style.display = 'none';
-        resultsDiv.style.display = 'grid';
+        
+        // Remove inline style:none, switch class for layout
+        resultsDiv.removeAttribute('style');
+        resultsDiv.className = singleCard ? 'popup-single' : 'popup-grid';
         resultsDiv.innerHTML = resultsHtml;
-        // Attach click events cho error-highlight bên trong popup
+        
+        // Attach click events for error-highlight spans inside popup
         resultsDiv.querySelectorAll(".error-highlight").forEach(span => {
             span.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const tip = document.getElementById("highlightTooltip");
-                const msg = span.dataset.msg || "Lỗi phát hiện";
+                const msg = span.dataset.msg || "Issue detected";
                 const fixes = JSON.parse(span.dataset.fixes || "[]");
                 document.getElementById("tooltipMsg").textContent = msg;
                 const fixesDiv = document.getElementById("tooltipFixes");
                 fixesDiv.innerHTML = fixes.length
                     ? fixes.slice(0,3).map(f => `<button class="tip-fix" onclick="closeTooltip()">${f}</button>`).join("")
-                    : `<span style="font-size:13px;color:var(--text-muted)">Không có gợi ý</span>`;
+                    : `<span style="font-size:13px;color:var(--text-muted)">No suggestions available</span>`;
                 const rect = span.getBoundingClientRect();
                 tip.style.top  = (rect.bottom + window.scrollY + 8) + "px";
                 tip.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 340) + "px";
                 tip.classList.add("open");
             });
         });
-        applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en'); // Apply to the new content
+        applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en');
         
         bar.style.width = '100%';
         overlay.classList.add('open');
-        console.log('Popup should be open now');
     }
 
     function hideAnalyzePopup() {
@@ -1648,18 +1661,18 @@
     };
 
     function renderAIAnalysis(aiData) {
-        if (!aiData || typeof aiData !== 'object') return '<p style="color:var(--text-muted)">Không có dữ liệu AI.</p>';
+        if (!aiData || typeof aiData !== 'object') return '<p style="color:var(--text-muted)">No AI data available.</p>';
         if (aiData.error) {
             return `<div style="background:rgba(239,68,68,0.1);border:1px solid #ef4444;border-radius:8px;padding:16px;color:#ef4444;">
-                <strong>⚠️ Lỗi AI:</strong><p style="margin-top:8px;font-size:14px;">${aiData.error}</p></div>`;
+                <strong>⚠️ AI Error:</strong><p style="margin-top:8px;font-size:14px;">${aiData.error}</p></div>`;
         }
 
-        // Màu và icon theo type issue
+        // Color and icon per issue type
         const typeStyle = {
             tone:      { color: "#ec4899", icon: "🎭", label: "Tone" },
-            structure: { color: "#10b981", icon: "🔗", label: "Cấu trúc" },
-            clarity:   { color: "#f59e0b", icon: "✂️", label: "Độ rõ" },
-            impact:    { color: "#8b5cf6", icon: "⚡", label: "Từ vựng" },
+            structure: { color: "#10b981", icon: "🔗", label: "Structure" },
+            clarity:   { color: "#f59e0b", icon: "✂️", label: "Clarity" },
+            impact:    { color: "#8b5cf6", icon: "⚡", label: "Impact" },
         };
 
         let html = "";
@@ -1670,7 +1683,7 @@
             const c = s >= 80 ? "#10b981" : s >= 60 ? "#f59e0b" : "#ef4444";
             html += `<div style="margin-bottom:20px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                    <strong>🎯 Điểm khớp giọng điệu</strong>
+                    <strong>🎯 Tone Match Score</strong>
                     <span style="font-weight:800;font-size:22px;color:${c};">${s}/100</span>
                 </div>
                 <div style="height:10px;background:var(--border-light);border-radius:10px;overflow:hidden;">
@@ -1682,12 +1695,12 @@
         // Tone feedback
         if (aiData.tone_feedback) {
             html += `<div style="background:var(--accent-soft);border:1px solid var(--border-light);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:14px;line-height:1.6;">
-                <strong>💬 Nhận xét:</strong> ${aiData.tone_feedback}</div>`;
+                <strong>💬 Tone Feedback:</strong> ${aiData.tone_feedback}</div>`;
         }
 
         // Issues list
         if (aiData.issues && aiData.issues.length) {
-            html += `<div><strong style="display:block;margin-bottom:12px;">📋 Chi tiết thay đổi (${aiData.issues.length})</strong>`;
+            html += `<div><strong style="display:block;margin-bottom:12px;">📋 Issue Details (${aiData.issues.length})</strong>`;
             html += aiData.issues.map(issue => {
                 const ts = typeStyle[issue.type] || { color: "#3b82f6", icon: "•", label: issue.type };
                 return `<div style="border:1px solid var(--border-light);border-radius:10px;padding:12px 14px;margin-bottom:10px;border-left:3px solid ${ts.color};">
@@ -1705,7 +1718,7 @@
             html += "</div>";
         }
 
-        return html || `<p style="color:var(--text-muted)">Phân tích hoàn tất.</p>`;
+        return html || `<p style="color:var(--text-muted)">Analysis complete.</p>`;
     }
 
     document.getElementById("checkButton").addEventListener("click", async () => {
@@ -1719,13 +1732,13 @@
             impact: "impact"
         };
 
-        // Label hiển thị cho từng mode
+        // Display label per mode
         const modeLabels = {
-            basic:      { icon: "ph-fill ph-check-square-offset", title: "Văn bản đã sửa lỗi",          desc: "Ngữ pháp & chính tả đã được chỉnh" },
-            tone:       { icon: "ph-fill ph-mask-happy",          title: "Văn bản theo giọng điệu mới",  desc: "Đã điều chỉnh tone & nhịp điệu" },
-            structural: { icon: "ph-fill ph-tree-structure",      title: "Văn bản đã tái cấu trúc",      desc: "Câu và đoạn văn đã được sắp xếp lại" },
-            clarity:    { icon: "ph-fill ph-scissors",            title: "Văn bản đã cắt gọn",           desc: "Đã loại bỏ từ thừa & câu bị động" },
-            impact:     { icon: "ph-fill ph-lightning",           title: "Văn bản với từ vựng mạnh hơn", desc: "Từ yếu đã được nâng cấp" }
+            basic:      { icon: "ph-fill ph-check-square-offset", title: "Text with Corrections",          desc: "Grammar & spelling have been corrected" },
+            tone:       { icon: "ph-fill ph-mask-happy",          title: "Text with New Tone",  desc: "Tone & rhythm have been adjusted" },
+            structural: { icon: "ph-fill ph-tree-structure",      title: "Text with Restructured Structure",      desc: "Sentences and paragraphs have been rearranged" },
+            clarity:    { icon: "ph-fill ph-scissors",            title: "Text with Improved Clarity",           desc: "Excessive words and passive voice have been removed" },
+            impact:     { icon: "ph-fill ph-lightning",           title: "Text with Stronger Vocabulary", desc: "Weak words have been upgraded" }
         };
 
         let backendMode = modeMapping[activeMode] || "basic";
@@ -1745,7 +1758,7 @@
             const payload = await response.json();
             console.log("Received from backend:", payload);
             if (!response.ok) throw new Error(payload.error || (window.t ? t('server-error','Server error') : 'Server error'));
-            // KHÔNG set correctedText ở đây - sẽ set sau khi build interactive highlight
+            // Do not set correctedText here — set after building interactive highlight
             const stats = payload.stats || {};
             document.getElementById("writingStatsList").innerHTML = `
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
@@ -1767,7 +1780,7 @@
             window.currentErrors = { grammar: payload.grammar_errors || [], style: payload.style_errors || [] };
             window._correctedPlainText = payload.corrected_text || payload.original_text || text;
 
-            // Build interactive highlight gộp cả grammar + style
+            // Build interactive highlight combining grammar + style errors
             const baseText = payload.original_text || text;
             const allErrors = [
                 ...(window.currentErrors.grammar || []).map(e => ({...e, _type:'grammar'})),
@@ -1795,7 +1808,7 @@
                 document.getElementById("correctedText").innerHTML = textToDisplay.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
             }
 
-            // Hiện Fix All nếu có lỗi có suggestions
+            // Show Fix All button if any errors have suggestions
             const hasFixes = [...window.currentErrors.grammar, ...window.currentErrors.style].some(e => e.suggestions && e.suggestions.length);
             const fixAllBtn = document.getElementById("fixAllBtn");
             if (hasFixes) fixAllBtn.classList.add("visible");
@@ -1813,7 +1826,7 @@
             if (payload.ai_analysis) {
                 aiPanel.hidden = false;
                 document.getElementById("aiAnalysisOutput").innerHTML = renderAIAnalysis(payload.ai_analysis);
-                // Không ghi đè correctedText để giữ nguyên interactive highlight
+                // Don't overwrite correctedText — preserve interactive highlight
                 if (payload.ai_analysis.improved_text) {
                     window._correctedPlainText = payload.ai_analysis.improved_text;
                 }
@@ -1823,7 +1836,7 @@
             hideAnalyzePopup();
             attachHighlightEvents();
 
-            // ── Cập nhật tiêu đề panel kết quả theo mode ──
+            // ── Update result panel title based on active mode ──
             const lbl = modeLabels[activeMode] || modeLabels.basic;
             const resultCardTitle = document.querySelector("#results .result-card:first-child h4");
             if (resultCardTitle) {
@@ -1832,17 +1845,17 @@
                     <span>${lbl.title}</span>
                     <small style="font-size:12px; font-weight:400; color:var(--text-muted); margin-left:4px;">— ${lbl.desc}</small>
                     <button id="copyBtn" onclick="copyResult()" style="margin-left:auto; display:flex; align-items:center; gap:6px; background:var(--surface-elevated); border:1px solid var(--border-medium); color:var(--text-secondary); border-radius:20px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer;">
-                        <i class="ph ph-copy" style="font-size:16px;"></i> <span id="copyBtnText">Sao chép</span>
+                        <i class="ph ph-copy" style="font-size:16px;"></i> <span id="copyBtnText">Copy</span>
                     </button>`;
             }
 
-            // ── Cập nhật tiêu đề phần đề xuất theo mode ──
+            // ── Update suggestions section title based on active mode ──
             const errorTitles = {
-                basic:      "⚠️ Lỗi ngữ pháp & chính tả",
-                tone:       "🎭 Điểm không khớp giọng điệu",
-                structural: "🔗 Vấn đề cấu trúc & mạch lạc",
-                clarity:    "✂️ Từ thừa & câu bị động",
-                impact:     "⚡ Từ yếu cần nâng cấp"
+                basic:      "⚠️ Grammar & Spelling Errors",
+                tone:       "🎭 Tone Mismatches",
+                structural: "🔗 Structure & Coherence Issues",
+                clarity:    "✂️ Filler Words & Passive Voice",
+                impact:     "⚡ Weak Words to Upgrade"
             };
             const errHeader = document.querySelector("#results .result-card:last-of-type h4");
             if (errHeader && !errHeader.closest("#aiPanel")) {
@@ -1850,15 +1863,15 @@
             }
             
             // Build results HTML for popup
-            // Lấy HTML đã build với interactive highlight để dùng trong popup
+            // Get HTML built with interactive highlight for popup
             const builtHL = document.getElementById("correctedText").innerHTML;
 
             let resultsHtml = "";
             if (backendMode !== 'basic' && payload.ai_analysis) {
                 resultsHtml = `
                     <div class="result-card" style="border: 2px solid var(--accent-primary); background: var(--card-bg);">
-                        <h4 data-i18n="ai-optimized-title" style="margin-bottom: 20px; font-size: 20px; color: var(--accent-primary);">
-                            <i class="ph-fill ph-brain"></i> 🤖 Kết Quả Phân Tích Chuyên Sâu
+                        <h4 style="margin-bottom: 20px; font-size: 20px; color: var(--accent-primary);">
+                            <i class="ph-fill ph-brain"></i> 🤖 AI Deep Analysis Results
                         </h4>
                         <div style="font-size:15px; line-height:1.8;">${renderAIAnalysis(payload.ai_analysis)}</div>
                     </div>
@@ -1897,7 +1910,7 @@
                 `;
             }
             
-            showResultsPopup(resultsHtml);
+            showResultsPopup(resultsHtml, backendMode !== 'basic' && !!payload.ai_analysis);
             showStatus(window.t ? t('analysis-complete','Analysis complete ✓') : 'Analysis complete ✓', "success");
         } catch (err) { hideAnalyzePopup(); showStatus(err.message, "error"); }
     });
@@ -1912,7 +1925,7 @@
         console.log('content collapsed:', content.classList.contains('collapsed'));
     }
 
-    // Tools phụ
+    // Extra tools
     document.getElementById("aiDetectBtn").addEventListener("click", async () => {
         const text = document.getElementById("inputText").value.trim();
         if (!text) return alert(window.t ? t('enter-main-text-error','Please enter text in the main editor first.') : 'Please enter text in the main editor first.');
@@ -1934,7 +1947,7 @@
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
             document.getElementById("thesaurusResults").innerHTML = `<div style="padding:12px; background:var(--bg-page); border-radius:8px;"><div style="color:var(--text-primary)"><strong>${window.t ? t('synonyms-label','Synonyms:') : 'Synonyms:'}</strong> ${data.synonyms?.join(", ") || "—"}</div><div style="margin-top:8px; color:var(--text-primary)"><strong>${window.t ? t('antonyms-label','Antonyms:') : 'Antonyms:'}</strong> ${data.antonyms?.join(", ") || "—"}</div></div>`;
-        } catch(e) { document.getElementById("thesaurusResults").innerHTML = `Lỗi: ${e.message}`; }
+        } catch(e) { document.getElementById("thesaurusResults").innerHTML = `Error: ${e.message}`; }
     });
     
     document.getElementById("capitalizeBtn").addEventListener("click", async () => {
@@ -1949,7 +1962,7 @@
         } catch(e) { document.getElementById("capitalizeResults").innerHTML = `⚠️ <span style="color:#ef4444">${e.message}</span>`; }
     });
 
-    // Xử lý menu dropdown
+    // Profile dropdown handling
     function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('open'); }
     document.addEventListener('click', (e) => {
         const drop = document.getElementById('profileDropdown');
@@ -1958,7 +1971,9 @@
     });
     
     function handleAuthAction() { localStorage.getItem('token') ? (localStorage.clear(), location.reload()) : window.location.href='login.html'; }
-    function handleLangChange(lang) { localStorage.setItem('appLang', lang); if(window.applyLanguage) applyLanguage(lang); document.getElementById('currentLangDisplay') && (document.getElementById('currentLangDisplay').innerText = lang === 'vi' ? 'Tiếng Việt' : 'English'); }
+    function handleLangChange(lang) {
+        applyLanguage(lang);
+    }
     
     function toggleDarkMode(e) { 
         e.stopPropagation(); 
@@ -1974,7 +1989,7 @@
         const tkn = localStorage.getItem('token');
         if (tkn) { 
             document.getElementById('profileSection').style.display = 'block'; 
-            document.getElementById('profileUsername').innerText = localStorage.getItem('username') || 'Người dùng'; 
+            document.getElementById('profileUsername').innerText = localStorage.getItem('username') || 'User'; 
             document.getElementById('profileFullName').innerText = localStorage.getItem('fullName') || ''; 
             const authText = document.getElementById('authActionText');
             authText.setAttribute('data-i18n', 'dropdown-logout');
@@ -2016,7 +2031,7 @@
             renderDrawerStats(drawerHistory);
             renderDrawerList(drawerHistory);
         } catch(e) {
-            body.innerHTML = `<div class="drawer-empty"><i class="ph ph-wifi-slash"></i><p>Không kết nối được server</p></div>`;
+            body.innerHTML = `<div class="drawer-empty"><i class="ph ph-wifi-slash"></i><p>Could not connect to server</p></div>`;
         }
     }
 
@@ -2056,7 +2071,7 @@
                 <div class="h-text">${item.text || ""}</div>
                 <div class="h-pills">
                     <span class="h-pill lang">${lang}</span>
-                    ${s.grammar ? `<span class="h-pill grammar"><i class="ph-fill ph-warning"></i> ${s.grammar} lỗi</span>` : ""}
+                    ${s.grammar ? `<span class="h-pill grammar"><i class="ph-fill ph-warning"></i> ${s.grammar} Errors</span>` : ""}
                     ${s.style   ? `<span class="h-pill style"><i class="ph-fill ph-info"></i> ${s.style} style</span>` : ""}
                     <button class="h-reuse-btn" onclick="reuseText(${idx})"><i class="ph ph-arrow-counter-clockwise"></i> Reuse</button>
                     <button class="h-delete-btn" onclick="deleteHistoryItem('${id}', this)" title="Xóa mục này"><i class="ph ph-trash"></i></button>
@@ -2392,15 +2407,15 @@
         const corrected = document.getElementById("correctedText")?.innerText?.trim()
                        || document.getElementById("correctedText")?.value?.trim();
 
-        if (!original) return alert("Nhập văn bản vào ô chính trước.");
-        if (!corrected) return alert("Chạy phân tích trước để có văn bản đã chỉnh sửa.");
+        if (!original) return alert("Please enter text in the main editor first.");
+        if (!corrected) return alert("Please run the analysis first to get corrected text.");
 
         const btn = document.getElementById("diffBtn");
         const out = document.getElementById("diffResults");
         btn.disabled = true;
-        btn.innerHTML = '<i class="ph ph-spinner"></i> Đang so sánh...';
+        btn.innerHTML = '<i class="ph ph-spinner"></i> Comparing...';
         out.classList.remove("hidden");
-        out.innerHTML = '<div style="color:var(--text-muted);">⏳ Đang tính toán thay đổi...</div>';
+        out.innerHTML = '<div style="color:var(--text-muted);">⏳ Calculating changes...</div>';
 
         try {
             const res = await fetch(BASE_URL + "/diff", {
@@ -2416,42 +2431,39 @@
             const deltaColor = s.word_delta < 0 ? "green" : s.word_delta > 0 ? "amber" : "";
 
             const changesHTML = (data.changes || []).slice(0, 20).map(c => {
-                if (c.type === "replace") return `<div class="diff-change-item replace"><span class="diff-change-badge replace">Thay</span><span style="text-decoration:line-through;color:#ef4444;">${c.from}</span> <span style="color:#10b981;">→ ${c.to}</span></div>`;
-                if (c.type === "delete")  return `<div class="diff-change-item delete"><span class="diff-change-badge delete">Xóa</span><span style="color:#ef4444;">${c.from}</span></div>`;
-                if (c.type === "insert")  return `<div class="diff-change-item insert"><span class="diff-change-badge insert">Thêm</span><span style="color:#10b981;">${c.to}</span></div>`;
+                if (c.type === "replace") return `<div class="diff-change-item replace"><span class="diff-change-badge replace">Replace</span><span style="text-decoration:line-through;color:#ef4444;">${c.from}</span> <span style="color:#10b981;">→ ${c.to}</span></div>`;
+                if (c.type === "delete")  return `<div class="diff-change-item delete"><span class="diff-change-badge delete">Delete</span><span style="color:#ef4444;">${c.from}</span></div>`;
+                if (c.type === "insert")  return `<div class="diff-change-item insert"><span class="diff-change-badge insert">Insert</span><span style="color:#10b981;">${c.to}</span></div>`;
                 return "";
             }).join("");
 
             out.innerHTML = `
                 <div class="tool-stat-row">
-                    <span class="tool-stat-chip">${s.total_changes} thay đổi</span>
-                    <span class="tool-stat-chip amber">${s.replacements} thay thế</span>
-                    <span class="tool-stat-chip red">${s.deletions} xóa</span>
-                    <span class="tool-stat-chip green">${s.insertions} thêm</span>
-                    <span class="tool-stat-chip ${deltaColor}">${delta} từ</span>
+                    <span class="tool-stat-chip">${s.total_changes} changes</span>
+                    <span class="tool-stat-chip amber">${s.replacements} replacements</span>
+                    <span class="tool-stat-chip red">${s.deletions} deletions</span>
+                    <span class="tool-stat-chip green">${s.insertions} insertions</span>
+                    <span class="tool-stat-chip ${deltaColor}">${delta} words</span>
                 </div>
                 <div class="diff-container">
                     <div class="diff-panel">
-                        <div class="diff-panel-header before"><i class="ph ph-x-circle"></i> Trước</div>
+                        <div class="diff-panel-header before"><i class="ph ph-x-circle"></i> Before</div>
                         <div class="diff-panel-body">${data.original_html}</div>
                     </div>
                     <div class="diff-panel">
-                        <div class="diff-panel-header after"><i class="ph ph-check-circle"></i> Sau</div>
+                        <div class="diff-panel-header after"><i class="ph ph-check-circle"></i> After</div>
                         <div class="diff-panel-body">${data.corrected_html}</div>
                     </div>
                 </div>
                 ${changesHTML ? `<div class="diff-changes-list">${changesHTML}</div>` : ""}`;
         } catch(e) {
-            out.innerHTML = `<span style="color:#ef4444;">⚠️ Lỗi kết nối server.</span>`;
+            out.innerHTML = `<span style="color:#ef4444;">⚠️ Server connection error.</span>`;
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="ph ph-git-diff"></i> Xem thay đổi';
+            btn.innerHTML = '<i class="ph ph-git-diff"></i> View Changes';
         }
     };
 </script>
-<script src="config/config.js"></script>
-<script src="assets/js/translations.js"></script>
-
 <!-- Floating Chat Bubble -->
 <button class="chat-bubble-btn" onclick="toggleChat()" title="Chat với AI" id="chatBubbleBtn">
     <i class="ph-fill ph-chat-circle-dots" id="chatBubbleIcon"></i>
@@ -2464,19 +2476,19 @@
         <div class="chat-header-avatar"><i class="ph-fill ph-sparkle"></i></div>
         <div class="chat-header-info">
             <strong>Lumina AI Assistant</strong>
-            <span id="chatStatus">● Sẵn sàng hỗ trợ</span>
+            <span id="chatStatus">● Ready to help</span>
         </div>
         <button class="chat-clear-btn" onclick="clearChat()" title="Xóa hội thoại"><i class="ph ph-arrow-counter-clockwise"></i></button>
         <button class="chat-header-close" onclick="toggleChat()"><i class="ph ph-x"></i></button>
     </div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-quick-btns" id="chatQuickBtns">
-        <button class="chat-quick-btn" onclick="sendQuick('Giải thích lỗi ngữ pháp phổ biến')">📚 Lỗi ngữ pháp</button>
-        <button class="chat-quick-btn" onclick="sendQuick('Cách viết email chuyên nghiệp')">✉️ Email pro</button>
-        <button class="chat-quick-btn" onclick="sendQuick('Phân tích văn bản tôi vừa nhập')">🔍 Phân tích text</button>
+        <button class="chat-quick-btn" onclick="sendQuick('Explain common grammar mistakes')">📚 Grammar tips</button>
+        <button class="chat-quick-btn" onclick="sendQuick('How to write a professional email')">✉️ Pro email</button>
+        <button class="chat-quick-btn" onclick="sendQuick('Analyze the text I just entered')">🔍 Analyze text</button>
     </div>
     <div class="chat-input-area">
-        <textarea id="chatInput" placeholder="Hỏi về văn bản, ngữ pháp..." rows="1"
+        <textarea id="chatInput" placeholder="Ask about writing, grammar..." rows="1"
             onkeydown="handleChatKey(event)" oninput="autoResizeChat(this)"></textarea>
         <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
             <i class="ph-fill ph-paper-plane-tilt"></i>
