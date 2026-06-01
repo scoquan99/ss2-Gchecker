@@ -332,7 +332,14 @@ const translations = {
         "diff-btn":   "Ver cambios",
 
         // Language names
-        "lang-en": "English",: translate a single key in current language
+        "lang-en": "English",
+        "lang-fr": "Français",
+        "lang-es": "Español",
+    },
+};
+
+/* ─────────────────────────────────────────────────────
+   t(): translate a single key in current language
    Usage: t('analyze-btn')  →  'Analyze & Refine'
 ───────────────────────────────────────────────────── */
 window.t = function(key, fallback) {
