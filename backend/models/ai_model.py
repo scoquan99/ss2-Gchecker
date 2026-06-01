@@ -1,7 +1,8 @@
 import os
 import json
-from click import prompt
+import re
 from google.genai import Client
+from google.genai import types as genai_types
 from dotenv import load_dotenv
 import itertools
 
@@ -16,6 +17,15 @@ api_keys = [
 api_keys = [k for k in api_keys if k and len(k.strip()) > 15]
 api_key_cycle = itertools.cycle(api_keys) if api_keys else None
 # ============================================================
+
+
+def _parse_json_response(raw: str) -> dict:
+    """Safely parse JSON from model response, handling markdown fences."""
+    raw = raw.strip()
+    raw = re.sub(r'^```(?:json)?\s*', '', raw)
+    raw = re.sub(r'\s*```$', '', raw)
+    return json.loads(raw.strip())
+
 
 class AIModel:
     def __init__(self):
@@ -37,25 +47,58 @@ class AIModel:
         if not self.configured:
             return {"error": "GEMINI_API_KEY not configured in .env file"}
 
-        system_instruction = "You are a professional grammar and writing analysis engine. Return only valid JSON."
+        mode_instructions = {
+            "structural": (
+                "You are a structure and flow editor. Improve sentence variation, paragraph logic, and transitions. "
+                "Vary sentence length, ensure each paragraph has a topic sentence → supporting details → conclusion, "
+                "and add transition words. Do NOT change vocabulary or tone — only restructure. "
+                "Flag every structural weakness."
+            ),
+            "style": (
+                f"You are a tone and voice editor. Rewrite the text to perfectly match the target tone: \"{tone}\". "
+                "Keep the original meaning 100%. Adjust word choice, sentence rhythm, and emotional register. "
+                "Flag every phrase that clashes with the target tone."
+            ),
+            "clarity": (
+                "You are a clarity and conciseness editor. Remove ALL filler words, convert passive voice to active, "
+                "replace wordy phrases with concise alternatives, and split sentences longer than 25 words. "
+                "Do NOT change meaning or tone — only remove fat. Flag every filler, passive, or redundancy."
+            ),
+            "impact": (
+                "You are a vocabulary and impact specialist. Replace weak verbs and vague adjectives with powerful, "
+                "precise alternatives. Replace clichés with fresh expressions. Elevate vocabulary context-appropriately. "
+                "Keep sentence structure the same — only swap words. Flag every weak word or cliché."
+            ),
+        }
 
-        # ... (giữ nguyên phần prompt của bạn)
+        instruction = mode_instructions.get(mode, mode_instructions["structural"])
+
+        prompt = f"""{instruction}
+
+Target tone: {tone}
+
+Return ONLY this JSON (no markdown, no explanation):
+{{
+    "improved_text": "full rewritten text",
+    "issues": [{{"type": "{mode}", "original": "original phrase", "suggestion": "improved version", "explanation": "reason for change"}}],
+    "tone_score": 0,
+    "tone_feedback": "brief summary of changes made"
+}}
+
+Text:
+{text[:5000]}"""
 
         for attempt in range(len(self.api_keys)):
             try:
                 client = self._get_client()
-                # (phần generate_content giữ nguyên như cũ của bạn)
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash",   # Model mới
-                    contents=prompt
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                    config=genai_types.GenerateContentConfig(
+                        thinking_config=genai_types.ThinkingConfig(thinking_budget=1024)
+                    )
                 )
-                # ... xử lý response giống cũ
-                result_text = response.text.strip()
-                # Xử lý markdown...
-                if result_text.startswith('```'):
-                    result_text = result_text.split('```')[1].replace('json', '').strip()
-                result = json.loads(result_text)
-                return result
+                return _parse_json_response(response.text)
 
             except Exception as e:
                 error_str = str(e).lower()
@@ -75,19 +118,28 @@ class AIModel:
         for attempt in range(len(self.api_keys)):
             try:
                 client = self._get_client()
-                prompt = f"""Phân tích xem văn bản sau có phải do AI tạo ra không. Trả về chỉ JSON:
-{{"ai_probability": 65, "reasoning": "Giải thích ngắn gọn bằng tiếng Việt"}}
+                prompt = f"""Bạn là chuyên gia ngôn ngữ học pháp y chuyên phát hiện văn bản do AI tạo ra.
+Phân tích văn bản sau theo các tiêu chí:
+1. MẪU TỪ VỰNG: Dùng quá nhiều cụm từ đệm, lặp lại cách mở đầu câu, phân bổ từ vựng cân bằng bất thường
+2. MẪU CẤU TRÚC: Độ dài đoạn văn quá đồng đều, cấu trúc công thức (mở đầu → thân → kết luận)
+3. MẪU NGỮ NGHĨA: Ví dụ chung chung, không cụ thể; ngôn ngữ né tránh; thiếu trải nghiệm cá nhân
+4. MẪU PHONG CÁCH: Ngữ pháp hoàn hảo, thiếu lỗi đánh máy, giọng điệu trung lập đáng ngờ
+5. TÍNH NHẤT QUÁN: AI thường mạch lạc toàn cục nhưng nông về chi tiết
+
+Đánh giá từ 0 (chắc chắn do người viết) đến 100 (chắc chắn do AI tạo).
+Trả về CHỈ JSON:
+{{"ai_probability": 65, "reasoning": "Bằng chứng cụ thể tìm thấy trong văn bản (trích dẫn câu/cụm từ thực tế)"}}
 
 Văn bản: {text[:6000]}"""
 
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
-                    contents=prompt
+                    contents=prompt,
+                    config=genai_types.GenerateContentConfig(
+                        thinking_config=genai_types.ThinkingConfig(thinking_budget=1024)
+                    )
                 )
-
-                raw = response.text.strip().strip("```json").strip("```").strip()
-                result = json.loads(raw)
-                return result
+                return _parse_json_response(response.text)
 
             except Exception as e:
                 error_str = str(e).lower()

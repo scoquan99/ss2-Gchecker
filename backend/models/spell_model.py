@@ -3,6 +3,7 @@ import language_tool_python.utils as lt_utils
 from google import genai
 from google.genai import types as genai_types
 import json
+import re
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -11,6 +12,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from config import get_gemini_keys
+
+
+def _parse_json_response(raw: str) -> dict:
+    """Safely parse JSON from model response, handling markdown fences."""
+    raw = raw.strip()
+    # Remove ```json ... ``` or ``` ... ``` fences
+    raw = re.sub(r'^```(?:json)?\s*', '', raw)
+    raw = re.sub(r'\s*```$', '', raw)
+    return json.loads(raw.strip())
 
 api_keys = get_gemini_keys()
 
@@ -105,50 +115,81 @@ class SpellChecker:
 
     def analyze_vietnamese(self, text, mode="basic", tone="Professional"):
         prompts = {
-            "basic": f"""Check Vietnamese grammar and spelling.
-Return ONLY this JSON:
+            "basic": f"""Bạn là chuyên gia ngữ pháp và chính tả tiếng Việt.
+Nhiệm vụ: Kiểm tra và sửa lỗi ngữ pháp, chính tả, dấu câu trong văn bản sau.
+Quy tắc:
+- Sửa tất cả lỗi chính tả, ngữ pháp, dùng từ sai nghĩa
+- Sửa lỗi dấu câu (thiếu dấu, dùng sai dấu)
+- Liệt kê từng lỗi cụ thể với giải thích rõ ràng
+- Giữ nguyên ý nghĩa và phong cách của tác giả
+Trả về CHỈ JSON này (không markdown, không giải thích thêm):
 {{
-    "corrected_text": "...",
-    "grammar_errors": [{{"message": "error description", "rule": "GRAMMAR", "suggestions": ["suggestion"], "offset": 0, "length": 1}}],
+    "corrected_text": "văn bản đã sửa",
+    "grammar_errors": [{{"message": "mô tả lỗi cụ thể", "rule": "GRAMMAR", "suggestions": ["gợi ý sửa"], "offset": 0, "length": 1}}],
     "style_errors": []
 }}
-Text: {text}""",
-            "style": f"""Rewrite this Vietnamese text to match the tone: {tone}.
-Keep the meaning, only change phrasing to fit the target tone.
-Return ONLY this JSON:
+Văn bản: {text}""",
+            "style": f"""Bạn là biên tập viên phong cách văn phong tiếng Việt chuyên nghiệp.
+Nhiệm vụ: Viết lại văn bản theo phong cách "{tone}", giữ nguyên 100% ý nghĩa.
+Quy tắc:
+- Nếu tone là "Academic" hoặc "Formal": dùng từ ngữ trang trọng, tránh từ lóng, rút gọn câu súc tích
+- Nếu tone là "Friendly" hoặc "Casual": dùng ngôn ngữ gần gũi, thêm sự ấm áp, dùng "bạn/chúng ta"
+- Nếu tone là "Persuasive": thêm động từ mạnh, luận điểm thuyết phục, kêu gọi hành động
+- Nếu tone là "Technical": dùng thuật ngữ chính xác, không có từ thừa
+- Gắn cờ từng cụm từ không phù hợp với tone mục tiêu
+Trả về CHỈ JSON này:
 {{
-    "corrected_text": "rewritten text in {tone} tone",
+    "corrected_text": "văn bản được viết lại theo đúng phong cách {tone}",
     "grammar_errors": [],
-    "style_errors": [{{"message": "explanation of changes", "rule": "TONE", "suggestions": [], "offset": 0, "length": 0}}]
+    "style_errors": [{{"message": "giải thích tại sao cụm từ này không phù hợp với tone", "rule": "TONE", "suggestions": ["phiên bản phù hợp với tone"], "offset": 0, "length": 0}}]
 }}
-Text: {text}""",
-            "structural": f"""Improve the structure and flow of this Vietnamese text.
-Reorder sentences for better logic, add transitions, split paragraphs appropriately. Do not change vocabulary.
-Return ONLY this JSON:
+Văn bản: {text}""",
+            "structural": f"""Bạn là biên tập viên cấu trúc văn bản tiếng Việt.
+Nhiệm vụ: Cải thiện cấu trúc và luồng ý của văn bản, KHÔNG thay đổi từ vựng hay phong cách.
+Quy tắc:
+- Đảm bảo mỗi đoạn có: câu chủ đề → chi tiết hỗ trợ → kết luận
+- Thêm từ nối chuyển tiếp giữa câu và đoạn văn (do đó, vì vậy, hơn nữa, tuy nhiên...)
+- Tách câu quá dài, gộp câu quá ngắn và rời rạc
+- Sắp xếp lại thứ tự câu nếu cần để logic hơn
+- Gắn cờ từng điểm yếu cấu trúc (thiếu chuyển tiếp, câu lủng củng, nhảy ý đột ngột)
+Trả về CHỈ JSON này:
 {{
-    "corrected_text": "restructured text",
+    "corrected_text": "văn bản đã cải thiện cấu trúc",
     "grammar_errors": [],
-    "style_errors": [{{"message": "structural issue found", "rule": "STRUCTURE", "suggestions": ["suggestion"], "offset": 0, "length": 0}}]
+    "style_errors": [{{"message": "vấn đề cấu trúc cụ thể", "rule": "STRUCTURE", "suggestions": ["gợi ý cải thiện"], "offset": 0, "length": 0}}]
 }}
-Text: {text}""",
-            "clarity": f"""Make this Vietnamese text more concise and clear.
-Remove filler words, convert passive to active voice, simplify phrasing.
-Return ONLY this JSON:
+Văn bản: {text}""",
+            "clarity": f"""Bạn là biên tập viên súc tích và rõ ràng cho tiếng Việt.
+Nhiệm vụ: Làm cho văn bản ngắn gọn và trực tiếp hơn, KHÔNG thay đổi ý nghĩa.
+Quy tắc:
+- Xóa từ đệm và từ thừa: "thực sự", "rất là", "về cơ bản", "như chúng ta đã biết", "điều quan trọng là"
+- Chuyển câu bị động sang chủ động
+- Thay thế cụm từ dài bằng từ ngắn gọn hơn ("do thực tế là" → "vì")
+- Xóa từ thừa ("kế hoạch tương lai", "lịch sử quá khứ")
+- Tách câu quá 30 từ
+- Gắn cờ từng từ đệm, câu bị động, hoặc sự thừa thãi
+Trả về CHỈ JSON này:
 {{
-    "corrected_text": "concise version",
+    "corrected_text": "văn bản đã rút gọn và rõ ràng hơn",
     "grammar_errors": [],
-    "style_errors": [{{"message": "filler/passive found", "rule": "CLARITY", "suggestions": ["concise version"], "offset": 0, "length": 0}}]
+    "style_errors": [{{"message": "từ đệm/câu bị động/thừa thãi được tìm thấy", "rule": "CLARITY", "suggestions": ["phiên bản súc tích hơn"], "offset": 0, "length": 0}}]
 }}
-Text: {text}""",
-            "impact": f"""Upgrade the vocabulary of this Vietnamese text.
-Replace weak/generic words with stronger, more precise alternatives. Keep sentence structure intact.
-Return ONLY this JSON:
+Văn bản: {text}""",
+            "impact": f"""Bạn là chuyên gia từ vựng và tác động ngôn ngữ tiếng Việt.
+Nhiệm vụ: Nâng cấp từ vựng yếu, chung chung bằng những từ mạnh hơn, chính xác hơn. GIỮ NGUYÊN cấu trúc câu.
+Quy tắc:
+- Thay thế động từ yếu ("là", "có", "làm", "được") bằng động từ hành động mạnh, cụ thể
+- Thay thế tính từ mờ nhạt ("tốt", "xấu", "đẹp", "lớn") bằng từ sinh động, chính xác
+- Thay cụm từ sáo rỗng bằng cách diễn đạt tươi mới, ấn tượng
+- KHÔNG đơn giản hóa — nhiệm vụ là NÂNG CẤP từ vựng
+- Gắn cờ từng từ yếu hoặc sáo rỗng
+Trả về CHỈ JSON này:
 {{
-    "corrected_text": "text with upgraded vocabulary",
+    "corrected_text": "văn bản với từ vựng được nâng cấp — cùng cấu trúc, từ ngữ mạnh hơn",
     "grammar_errors": [],
-    "style_errors": [{{"message": "weak word -> stronger word", "rule": "IMPACT", "suggestions": ["stronger word"], "offset": 0, "length": 0}}]
+    "style_errors": [{{"message": "từ yếu/sáo rỗng → từ mạnh hơn", "rule": "IMPACT", "suggestions": ["từ thay thế mạnh hơn"], "offset": 0, "length": 0}}]
 }}
-Text: {text}"""
+Văn bản: {text}"""
         }
 
         prompt = prompts.get(mode, prompts["basic"])
@@ -163,11 +204,10 @@ Text: {text}"""
                     model="gemini-2.5-flash",
                     contents=prompt,
                     config=genai_types.GenerateContentConfig(
-                        thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
+                        thinking_config=genai_types.ThinkingConfig(thinking_budget=1024)
                     )
                 )
-                raw = response.text.strip().strip("```json").strip("```").strip()
-                data = json.loads(raw)
+                data = _parse_json_response(response.text)
                 return {
                     "corrected_text":   data.get("corrected_text", text),
                     "grammar_errors":   data.get("grammar_errors", []),
@@ -201,11 +241,10 @@ Text: {text}"""
                     model="gemini-2.5-flash",
                     contents=prompt,
                     config=genai_types.GenerateContentConfig(
-                        thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
+                        thinking_config=genai_types.ThinkingConfig(thinking_budget=1024)
                     )
                 )
-                raw = response.text.strip().strip("```json").strip("```").strip()
-                return json.loads(raw)
+                return _parse_json_response(response.text)
             except Exception as e:
                 print(f"Key {i+1} error (ai_analysis/{mode}): {str(e)[:80]}")
                 last_error = str(e)
