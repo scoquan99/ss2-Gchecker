@@ -1589,7 +1589,7 @@
         // Reset to loading state
         h3.setAttribute('data-i18n', 'analyzing-popup-title');
         p.setAttribute('data-i18n', 'analyzing-popup-desc');
-        applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en'); // Re-apply to update text
+        if (window.applyLanguage) applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en'); // Re-apply to update text
         resultsDiv.className = 'popup-grid';
         resultsDiv.style.display = 'none';
         resultsDiv.innerHTML = '';
@@ -1612,7 +1612,7 @@
         // Switch to results state
         h3.setAttribute('data-i18n', 'results-popup-title');
         p.setAttribute('data-i18n', 'results-popup-desc');
-        applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en');
+        if (window.applyLanguage) applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en');
         overlay.querySelector('.popup-progress').style.display = 'none';
         
         // Remove inline style:none, switch class for layout
@@ -1638,7 +1638,7 @@
                 tip.classList.add("open");
             });
         });
-        applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en');
+        if (window.applyLanguage) applyLanguage(localStorage.getItem(AppConfig.STORAGE_KEYS.APP_LANG) || 'en');
         
         bar.style.width = '100%';
         overlay.classList.add('open');
@@ -1746,7 +1746,7 @@
         let backendMode = modeMapping[activeMode] || "basic";
         const tone = document.getElementById("toneInput").value.trim() || "Professional";
 
-        console.log(`[DEBUG] Mode selected: ${activeMode} → Backend mode: ${backendMode}, Tone: ${tone}`);
+        console.log(`[DEBUG] Mode selected: ${activeMode} -> Backend mode: ${backendMode}, Tone: ${tone}`);
         showStatus(window.t ? t('analysis-loading','Analyzing with AI engine...') : 'Analyzing with AI engine...', "info");
         showAnalyzePopup();
         document.getElementById("results").hidden = true;
